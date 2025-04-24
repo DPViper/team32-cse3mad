@@ -7,13 +7,15 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
+import { useForm, Controller } from 'react-hook-form';
+import Toast from 'react-native-toast-message';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const { control, handleSubmit, formState: { errors } } = useForm();
 
   const handleRegister = async () => {
     if (password.length < 6) {
@@ -29,22 +31,47 @@ export default function RegisterScreen() {
     }
   };
 
+  const onSubmit = async (data: any) => {
+    if (data.password.length < 6) {
+      Toast.show({ type: 'error', text1: 'Password too short' });
+      return;
+    }
+  
+    try {
+      await createUserWithEmailAndPassword(auth, data.email, data.password);
+      router.replace('/(tabs)');
+    } catch (e: any) {
+      Toast.show({ type: 'error', text1: 'Error', text2: e.message });
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title">Create Account</ThemedText>
-      <Input 
-        placeholder="Email" 
-        value={email} 
-        onChangeText={setEmail} 
+      <Controller
+        control={control}
+        name="email"
+        rules={{ required: true }}
+        render={({ field: { onChange, value } }) => (
+          <Input placeholder="Email" value={value} onChangeText={onChange} />
+        )}
       />
-      <Input 
-        placeholder="Password" 
-        value={password} 
-        onChangeText={setPassword} 
-        secureTextEntry 
+      {errors.email && <Text style={{ color: 'red' }}>Email is required</Text>}
+
+      <Controller
+        control={control}
+        name="password"
+        rules={{ required: true, minLength: 6 }}
+        render={({ field: { onChange, value } }) => (
+          <Input placeholder="Password" secureTextEntry value={value} onChangeText={onChange} />
+        )}
       />
-      {error !== '' && <Text style={styles.error}>{error}</Text>}
-      <Button onPress={handleRegister} style={{ width: '100%', marginTop: 16 }}>Register</Button>
+      {errors.password && (
+        <Text style={{ color: 'red' }}>
+          {errors.password.type === 'minLength' ? 'Min 6 characters' : 'Password is required'}
+        </Text>
+      )}
+      <Button onPress={handleSubmit(onSubmit)}>Register</Button>
       <Button variant="ghost" onPress={() => router.push('/(auth)/login')} style={{ marginTop: 8 }}>
         Already have an account? Login
       </Button>

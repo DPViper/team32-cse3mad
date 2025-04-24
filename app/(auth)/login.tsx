@@ -54,6 +54,9 @@ export default function LoginScreen() {
       <Button variant="ghost" onPress={() => router.push('/(auth)/register')} style={{ marginTop: 8 }}>
         Don't have an account? Register
       </Button>
+      <Button variant="ghost" onPress={() => router.push('/(auth)/forgot-password')}>
+        Forgot Password?
+      </Button>
     </ThemedView>
   );
 }

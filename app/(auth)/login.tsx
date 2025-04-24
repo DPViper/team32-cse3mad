@@ -1,47 +1,55 @@
 import { useState } from 'react';
-import { View, TextInput, Alert, StyleSheet } from 'react-native';
+import { View, Text, Alert, StyleSheet } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/button';
-
+import { Input } from '@/components/ui/input';
+import { useGoogleSignIn } from '@/lib/authWithGoogle';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
+  const { promptAsync, request } = useGoogleSignIn();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace('/(tabs)');
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message);
+    } catch (e: any) {
+      Alert.alert(e.message);
     }
   };
 
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title">Welcome Back</ThemedText>
-      <TextInput
+      <Input
         placeholder="Email"
-        placeholderTextColor="#7A5C4A"
         onChangeText={setEmail}
         value={email}
-        style={styles.input}
       />
-      <TextInput
+      <Input
         placeholder="Password"
-        placeholderTextColor="#7A5C4A"
-        secureTextEntry
         onChangeText={setPassword}
         value={password}
-        style={styles.input}
+        secureTextEntry
       />
+      {error !== '' && <Text style={styles.error}>{error}</Text>}
       <Button onPress={handleLogin} style={{ width: '100%', marginTop: 16 }}>
         Login
+      </Button>
+      <Button onPress={() => promptAsync()} style={{ marginTop: 10 }}>
+        Sign in with Google
       </Button>
       <Button variant="ghost" onPress={() => router.push('/(auth)/register')} style={{ marginTop: 8 }}>
         Don't have an account? Register
@@ -66,5 +74,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     fontFamily: 'PlusJakartaSans',
     color: '#4A372D',
-  }
+  },
+  error: {
+    color: '#B00020',
+    fontSize: 14,
+    marginBottom: 8,
+  },
 });

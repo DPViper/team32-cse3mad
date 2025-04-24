@@ -1,16 +1,23 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { View, Image, StyleSheet, Platform } from 'react-native';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'expo-router';
 import { Button } from 'react-native';
-
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { ThemedText } from '@/components/ThemedText';
 
 
 export default function HomeScreen() {
+  const { name, avatar } = useUserProfile();
+
   return (
-    <Button title="Logout" onPress={() => {
-      signOut(auth);
-    }} /> 
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <Image
+      source={{ uri: avatar }}
+      style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
+    />
+    <ThemedText>Welcome back, {name}!</ThemedText>
+  </View>
   );
 }
 

@@ -10,11 +10,13 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { Image } from 'react-native';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { user, loading } = useAuth();
+  const { avatar } = useUserProfile();
 
   if (loading) {
     return (
@@ -61,15 +63,21 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) =>
-          user?.photoURL ? (
-            <Image
-              source={{ uri: user.photoURL }}
-              style={{ width: 28, height: 28, borderRadius: 14 }}
-            />
-          ) : (
-            <IconSymbol size={28} name="person.fill" color={color} />
-          ),
+          tabBarIcon: ({ focused, color }) =>
+            avatar ? (
+              <Image
+                source={{ uri: avatar }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
+                  borderWidth: focused ? 2 : 0,
+                  borderColor: '#7A5C4A',
+                }}
+              />
+            ) : (
+              <IconSymbol size={28} name="person.fill" color={color} />
+            ),
         }}
       />
     </Tabs>

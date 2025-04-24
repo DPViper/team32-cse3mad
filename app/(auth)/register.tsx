@@ -9,6 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useForm, Controller } from 'react-hook-form';
 import Toast from 'react-native-toast-message';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebaseConfig';
+import { updateDoc } from 'firebase/firestore';
+
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -39,6 +43,22 @@ export default function RegisterScreen() {
   
     try {
       await createUserWithEmailAndPassword(auth, data.email, data.password);
+      
+      const uid = auth.currentUser?.uid;
+
+      await setDoc(doc(db, 'users', uid!), {
+        userID: uid,
+        displayName: email.split('@')[0],
+        phone: '',
+        activeLevel: 'New',
+      });
+      if (!uid) return;
+
+      await updateDoc(doc(db, 'users', uid), {
+        phone: '+123456789',
+        activeLevel: 'Explorer',
+      });
+
       router.replace('/(tabs)');
     } catch (e: any) {
       Toast.show({ type: 'error', text1: 'Error', text2: e.message });

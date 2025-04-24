@@ -4,14 +4,33 @@ import { useAuth } from '@/contexts/AuthContext';
 import { updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebaseConfig';
 import Toast from 'react-native-toast-message';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebaseConfig';
+import { updateDoc } from 'firebase/firestore';
 
 export default function ProfileScreen() {
-  const { user } = useAuth();
-  const [name, setName] = useState(user?.displayName || '');
-  const [photo, setPhoto] = useState(user?.photoURL || '');
+  const { profile, refreshProfile } = useAuth();
+  const [name, setName] = useState(profile?.displayName || '');
+  const [phone, setPhone] = useState(profile?.phone || '');
 
   const handleSave = async () => {
+    const uid = auth.currentUser?.uid;
     if (!auth.currentUser) return;
+
+    if (!uid) return;
+
+    await updateDoc(doc(db, 'users', uid), {
+      displayName: name,
+      phone,
+    });
+  
+    await updateProfile(auth.currentUser!, {
+      displayName: name,
+      photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&rounded=true&size=256`,
+    });
+  
+    Toast.show({ type: 'success', text1: 'Profile updated!' });
+    refreshProfile();
 
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&rounded=true&size=256`;
 
@@ -31,6 +50,15 @@ export default function ProfileScreen() {
         text1: 'Update failed',
         text2: e.message,
       });
+    }
+  };
+
+  const fetchProfile = async () => {
+    const docRef = doc(db, 'users', auth.currentUser!.uid);
+    const docSnap = await getDoc(docRef);
+  
+    if (docSnap.exists()) {
+      console.log('User data:', docSnap.data());
     }
   };
 

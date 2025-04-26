@@ -1,41 +1,34 @@
-import { View, Image, StyleSheet, Platform } from 'react-native';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebaseConfig';
-import { useRouter } from 'expo-router';
-import { Button } from 'react-native';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { ThemedText } from '@/components/ThemedText';
+import { View, Text, StyleSheet } from "react-native";
+import MapView, { Circle, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
-
-export default function HomeScreen() {
-  const { name, avatar } = useUserProfile();
-
+export default function home() {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Image
-      source={{ uri: avatar }}
-      style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
-    />
-    <ThemedText>Welcome back, {name}!</ThemedText>
-  </View>
+    <View style={styles.container}>
+      <MapView
+        // provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={{
+          latitude: -37.8136,
+          longitude: 144.9631,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      >
+        <Marker
+          coordinate={{ latitude: -37.8136, longitude: 144.9631 }}
+          title="Melbourne"
+        />
+      </MapView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  map: {
+    width: "100%",
+    height: "100%",
   },
 });

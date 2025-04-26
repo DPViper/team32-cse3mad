@@ -1,110 +1,89 @@
-import { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, Alert } from 'react-native';
-import { useAuth } from '@/contexts/AuthContext';
-import { updateProfile } from 'firebase/auth';
-import { auth } from '@/lib/firebaseConfig';
-import Toast from 'react-native-toast-message';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
-import { updateDoc } from 'firebase/firestore';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebaseConfig";
 
-export default function ProfileScreen() {
-  const { profile, refreshProfile } = useAuth();
-  const [name, setName] = useState(profile?.displayName || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
-
-  const handleSave = async () => {
-    const uid = auth.currentUser?.uid;
-    if (!auth.currentUser) return;
-
-    if (!uid) return;
-
-    await updateDoc(doc(db, 'users', uid), {
-      displayName: name,
-      phone,
-    });
-  
-    await updateProfile(auth.currentUser!, {
-      displayName: name,
-      photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&rounded=true&size=256`,
-    });
-  
-    Toast.show({ type: 'success', text1: 'Profile updated!' });
-    refreshProfile();
-
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&rounded=true&size=256`;
-
-    try {
-      await updateProfile(auth.currentUser, {
-        displayName: name,
-        photoURL: avatarUrl,
-      });
-
-      Toast.show({
-        type: 'success',
-        text1: 'Profile updated!',
-      });
-    } catch (e: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Update failed',
-        text2: e.message,
-      });
-    }
-  };
-
-  const fetchProfile = async () => {
-    const docRef = doc(db, 'users', auth.currentUser!.uid);
-    const docSnap = await getDoc(docRef);
-  
-    if (docSnap.exists()) {
-      console.log('User data:', docSnap.data());
-    }
-  };
-
+export default function profile() {
   return (
     <View style={styles.container}>
-      {name && (
-        <Image
-          source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&rounded=true&size=256` }}
-          style={styles.avatar}
-        />
-      )}
-      <TextInput
-        placeholder="Display Name"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
-      <Button title="Save Changes" onPress={handleSave} />
+      {/* Avatar and name */}
+      <View style={styles.profile}>
+        <Text style={styles.name}>John Doe</Text>
+        <Text style={styles.memberSince}>Joined Apr 2025</Text>
+      </View>
+
+      {/* test button to log out */}
+      <TouchableOpacity
+        style={{
+          backgroundColor: "#FF0000",
+          padding: 10,
+          borderRadius: 5,
+          marginBottom: 20,
+        }}
+        onPress={() => signOut(auth)}
+      >
+        <Text style={{ color: "#fff", textAlign: "center" }}>Log out</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    backgroundColor: '#F5EFE7',
+    padding: 20,
+    backgroundColor: "#fff",
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#D5BDAF',
-    width: '100%',
-    padding: 12,
-    borderRadius: 8,
-    fontFamily: 'PlusJakartaSans',
-    color: '#4A372D',
-    backgroundColor: '#FFF',
-    marginBottom: 12,
+  profile: {
+    alignItems: "center",
+    marginBottom: 30,
+    marginTop: 50,
   },
   avatar: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 16,
+    marginBottom: 10,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  memberSince: {
+    fontSize: 14,
+    color: "#888",
+  },
+  favTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  placeItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  placeImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  placeInfo: {
+    flex: 1,
+  },
+  placeName: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  placeType: {
+    fontSize: 13,
+    color: "#777",
   },
 });

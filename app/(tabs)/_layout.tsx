@@ -2,10 +2,8 @@ import { Tabs, Redirect } from "expo-router";
 import React from "react";
 import { ActivityIndicator, View, Platform } from "react-native";
 
-import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,12 +11,14 @@ import { Image } from "react-native";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const theme = useTheme();
+  const styles = createThemedStyles(theme);
+
   const { user, loading } = useAuth();
   const { avatar } = useUserProfile();
   const insets = useSafeAreaInsets();
@@ -32,15 +32,15 @@ export default function TabLayout() {
   }
 
   if (!user) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)" />;
   }
 
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
-        tabBarActiveTintColor: COLORS.textDark,
-        tabBarInactiveTintColor: COLORS.secondary,
+        tabBarActiveTintColor: theme.textDark,
+        tabBarInactiveTintColor: theme.secondary,
         headerShadowVisible: false,
         headerTitleAlign: "center",
         tabBarStyle: {
@@ -94,20 +94,22 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: COLORS.primary,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingTop: 5,
-  },
-  tabLabel: {
-    fontFamily: "PlusJakartaSans-Medium",
-  },
-  header: {
-    backgroundColor: COLORS.primary,
-  },
-  headerTitle: {
-    fontFamily: "PlusJakartaSans-Medium",
-  },
-});
+function createThemedStyles(theme: any) {
+  return StyleSheet.create({
+    tabBar: {
+      backgroundColor: theme.primary,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      paddingTop: 5,
+    },
+    tabLabel: {
+      fontFamily: "PlusJakartaSans",
+    },
+    header: {
+      backgroundColor: theme.primary,
+    },
+    headerTitle: {
+      fontFamily: "PlusJakartaSans",
+    },
+  });
+}

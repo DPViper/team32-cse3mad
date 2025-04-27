@@ -1,8 +1,8 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+// import {
+//   DarkTheme,
+//   DefaultTheme,
+// } from "@react-navigation/native";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -12,16 +12,15 @@ import "react-native-reanimated";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Toast from "react-native-toast-message";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
-
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     PlusJakartaSans: require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
+    PlusJakartaSansSemiBold: require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
+    PlusJakartaSansBold: require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
   });
 
   useEffect(() => {
@@ -35,15 +34,15 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <Stack>
+    <AuthProvider>
+      <ThemeProvider>
+        <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <Toast />
         <StatusBar style="auto" />
-      </AuthProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

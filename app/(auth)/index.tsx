@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
+  Image,
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
@@ -49,8 +51,14 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.container}>
-        {/* title */}
-        <Text style={styles.title}>Welcome back</Text>
+        {/* illustration */}
+        <View style={styles.topIllustration}>
+          <Image
+            source={require("../../assets/images/login-illustration.png")}
+            style={styles.illustrationImage}
+            resizeMode="contain"
+          />
+        </View>
 
         {/* email and password */}
         <Input placeholder="Email" onChangeText={setEmail} value={email} />
@@ -85,6 +93,9 @@ export default function LoginScreen() {
 }
 
 function createThemedStyles(theme: any) {
+  // Get the width of the screen
+  const { width } = Dimensions.get("window");
+
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -95,25 +106,10 @@ function createThemedStyles(theme: any) {
     },
     title: {
       fontSize: 24,
-      fontWeight: 700,
       color: theme.textDark,
       textAlign: "center",
       marginBottom: 16,
       fontFamily: "PlusJakartaSans",
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.inputBackground,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 12,
-    },
-    input: {
-      flex: 1,
-      height: 48,
-      color: theme.textDark,
     },
     error: {
       color: "#B00020",
@@ -134,6 +130,14 @@ function createThemedStyles(theme: any) {
       textDecorationLine: "underline",
       fontFamily: "PlusJakartaSansSemiBold",
       marginTop: 8,
+    },
+    topIllustration: {
+      alignItems: "center",
+      width: "100%",
+    },
+    illustrationImage: {
+      width: width * 0.75,
+      height: width * 0.75,
     },
   });
 }

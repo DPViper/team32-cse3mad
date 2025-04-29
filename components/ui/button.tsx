@@ -13,7 +13,7 @@ type ButtonProps = {
   onPress: (event: GestureResponderEvent) => void;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  variant?: "solid" | "ghost";
+  variant?: "solid" | "ghost" | "outline" | "soft";
 };
 
 export const Button = ({
@@ -29,11 +29,28 @@ export const Button = ({
       onPress={onPress}
       style={[
         styles.button,
-        variant === "ghost" ? styles.ghost : styles.solid,
+        variant === "ghost"
+          ? styles.ghost
+          : variant === "outline"
+          ? styles.outline
+          : variant === "soft"
+          ? styles.soft
+          : styles.solid,
         style,
       ]}
     >
-      <Text style={[styles.text, variant === "ghost" ? styles.ghostText : {}]}>
+      <Text
+        style={[
+          styles.text,
+          variant === "ghost"
+            ? styles.ghostText
+            : variant === "outline"
+            ? styles.outlineText
+            : variant === "soft"
+            ? styles.softText
+            : {},
+        ]}
+      >
         {children}
       </Text>
     </TouchableOpacity>
@@ -54,6 +71,14 @@ const createThemedStyles = (theme: any) => {
     ghost: {
       backgroundColor: "transparent",
     },
+    outline: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    soft: {
+      backgroundColor: theme.placeholderText ?? "#EFEFEF",
+    },
     text: {
       color: theme.textDark,
       fontSize: 16,
@@ -63,6 +88,14 @@ const createThemedStyles = (theme: any) => {
       color: theme.secondary,
       textDecorationLine: "underline",
       fontFamily: "PlusJakartaSans",
+    },
+    outlineText: {
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSansSemiBold",
+    },
+    softText: {
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSansSemiBold",
     },
   });
 };

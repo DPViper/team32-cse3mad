@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions, Alert, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, Alert, TouchableOpacity, TextInput } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import Constants from "expo-constants";
@@ -8,7 +8,7 @@ import 'react-native-get-random-values';
 import { db } from "@/lib/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
-import { collection, addDoc, onSnapshot, DocumentData } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, DocumentData, getDocs, updateDoc } from "firebase/firestore";
 
 type POI = {
   id: string;
@@ -16,6 +16,7 @@ type POI = {
   description: string;
   coordinate: { latitude: number; longitude: number };
   rating?: number;
+  averageRating?: number;
   image?: string;
 };
 
@@ -24,6 +25,10 @@ export default function HomeScreen() {
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
   const mapRef = useRef<MapView>(null);
   const { user } = useAuth();
+  const [ratings, setRating] = useState<number>(0); 
+  const [averageRating, setAverageRating] = useState<number>(0); // create average rating
+  const [comment, setComment] = useState<string>(""); // create comments
+  const [comments, setComments] = useState<any[]>([]);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "pois"), (snapshot) => {
@@ -38,14 +43,77 @@ export default function HomeScreen() {
             longitude: data.longitude,
           },
           rating: data.rating,
+          averageRating: data.averageRating,
+          comments: data.comments,
           image: data.image,
         };
       });
       setPOIs(poiList);
+      
+      //Update selectedPOI if it's in the new list
+      if (selectedPOI) {
+        const updatedPOI = poiList.find(poi => poi.id === selectedPOI.id);
+        if (updatedPOI) {
+          setSelectedPOI(updatedPOI);
+          setAverageRating(updatedPOI.averageRating || 0);
+        }
+      }
     });
 
     return () => unsub();
-  }, []);
+  }, [selectedPOI?.id]);
+
+  // Listen realtime comments
+  useEffect(() => {
+    if (selectedPOI) {
+      const unsub = onSnapshot(collection(db, `pois/${selectedPOI.id}/comments`), (snapshot) => {
+        const commentList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setComments(commentList);
+      });
+      return () => unsub();
+    }
+  }, [selectedPOI?.id]);
+  
+  // Function for calculating average rating
+  const calculateAverageRating = async (poiId: string) => {
+    try {
+      const ratingsSnapshot = await getDocs(collection(db, `pois/${poiId}/ratings`));
+      const ratings = ratingsSnapshot.docs.map(doc => doc.data().value);
+      const avg = ratings.length > 0 ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : 0;
+      
+      // Update rating in FireStore
+      await updateDoc(doc(db, "pois", poiId), {
+        averageRating: avg
+      });
+      
+      return avg;
+    } catch (error) {
+      console.error("Error calculating average rating:", error);
+      return 0;
+    }
+  };
+
+  // Function for handling rating change
+  const handleRatingChange = async (newRating: number) => {
+    if (!selectedPOI || !user) return;
+    
+    setRating(newRating);
+    
+    try {
+      // Save rating users
+      await setDoc(doc(collection(db, `pois/${selectedPOI.id}/ratings`), user.uid), {
+        value: newRating,
+        ratedAt: new Date()
+      });
+      
+      // Calculate and update average rating
+      const avg = await calculateAverageRating(selectedPOI.id);
+      setAverageRating(avg);
+    } catch (error) {
+      console.error("Error updating rating:", error);
+      Alert.alert("Error", "Failed to update rating");
+    }
+  };
 
   const handlePlaceSelect = async (data: any) => {
     try {
@@ -74,6 +142,8 @@ export default function HomeScreen() {
 
       setPOIs((prev) => [...prev, newPOI]);
       setSelectedPOI(newPOI);
+      setRating(0); // reset rating 0 when a new POI is selected
+      setAverageRating(0); //reset average rating 0 when a new POI is selected
 
       mapRef.current?.animateToRegion(
         {
@@ -90,28 +160,84 @@ export default function HomeScreen() {
     }
   };
 
+  // Compontent StarRating
+  const StarRating = ({ rating, onChange }: { rating: number; onChange: (value: number) => void }) => {
+    const stars = [1, 2, 3, 4, 5];
+    return (
+      <View style={{ flexDirection: "row", marginVertical: 8 }}>
+        {stars.map((star) => (
+          <TouchableOpacity key={star} onPress={() => onChange(star)}>
+            <Text style={{ fontSize: 24, color: star <= rating ? "#FFD700" : "#CCC" }}>★</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
   const handleSavePOI = async () => {
     if (!selectedPOI || !user) return;
 
     try {
-      await addDoc(collection(db, "pois"), {
+        // Save POI to collection "pois"
+        const docRef = await addDoc(collection(db, "pois"), {
         title: selectedPOI.title,
         description: selectedPOI.description,
         latitude: selectedPOI.coordinate.latitude,
         longitude: selectedPOI.coordinate.longitude,
-        rating: selectedPOI.rating ?? null,
+        // rating: selectedPOI.rating ?? null,
+        rating: ratings, //fetch rating from state instead of selectedPOI.rating
+        averageRating: ratings, // if NewPOI, averageRating = first rating
         image: selectedPOI.image ?? null,
         createdBy: user.uid,
         createdAt: new Date(),
       });
 
+      // Save user's rating
+      await setDoc(doc(collection(docRef, "ratings"), user.uid), {
+        value: ratings,
+        ratedAt: new Date(),
+      });
+
+      calculateAverageRating(docRef.id);
+  
       Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
-      setSelectedPOI(null);
+      setSelectedPOI(null);   
     } catch (err) {
       console.error("Error saving POI:", err);
       Alert.alert("Error", "Failed to share POI.");
     }
   };
+
+  // Fetch comments
+  useEffect(() => {
+    if (selectedPOI) {
+      const unsub = onSnapshot(collection(db, `pois/${selectedPOI.id}/comments`), (snapshot) => {
+        const commentList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setComments(commentList);
+      });
+      return () => unsub();
+    }
+  }, [selectedPOI?.id]);
+  
+  const handlePostComment = async () => {
+    if (!user || !selectedPOI || comment.trim() === "") return;
+    try {
+      await addDoc(collection(db, `pois/${selectedPOI.id}/comments`), {
+        userId: user.uid,
+        displayName: user.displayName || "Anonymous",
+        comment,
+        rating: ratings,
+        createdAt: new Date(),
+      });
+      setComment("");
+      Alert.alert("Comment posted");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      Alert.alert("Error", "Failed to post comment");
+    }
+  };
+
+  
 
   return (
     <View style={styles.container}>
@@ -143,7 +269,34 @@ export default function HomeScreen() {
       >
         {pois.map((poi) => (
           <Marker key={poi.id} coordinate={poi.coordinate} title={poi.title}>
-            <Callout onPress={() => setSelectedPOI(poi)}>
+            <Callout
+              onPress={async () => {
+                setSelectedPOI(poi);
+
+                try {
+                  // Lấy rating của người dùng hiện tại nếu có
+                  if (user) {
+                    const userRatingDoc = await getDocs(
+                      collection(db, `pois/${poi.id}/ratings`)
+                    );
+                    const myRatingDoc = userRatingDoc.docs.find(
+                      (doc) => doc.id === user.uid
+                    );
+                    setRating(myRatingDoc?.data()?.value || 0);
+                  }
+
+                  // Lấy average rating từ POI hoặc tính toán lại
+                  if (poi.averageRating !== undefined) {
+                    setAverageRating(poi.averageRating);
+                  } else {
+                    const avg = await calculateAverageRating(poi.id);
+                    setAverageRating(avg);
+                  }
+                } catch (error) {
+                  console.error("Error fetching ratings:", error);
+                }
+              }}
+            >
               <Text>{poi.title}</Text>
             </Callout>
           </Marker>
@@ -160,7 +313,13 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <Text style={styles.poiTitle}>{selectedPOI.title}</Text>
           <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
-          {selectedPOI.rating && <Text>⭐ {selectedPOI.rating}</Text>}
+          {/* {selectedPOI.rating && <Text>⭐ {selectedPOI.rating}</Text>} */}
+          {/* Adding rating */}
+          <Text style={{ marginTop: 8, fontWeight: "bold" }}>Your Rating:</Text>  
+          <Text style={{ fontSize: 14, color: "#888", marginTop: 4 }}>
+            Average Rating: {averageRating.toFixed(1)} ⭐
+          </Text>
+          <StarRating rating={ratings} onChange={handleRatingChange} />
           {selectedPOI.image && (
             <Image
               source={{ uri: selectedPOI.image }}
@@ -173,6 +332,32 @@ export default function HomeScreen() {
               resizeMode="cover"
             />
           )}
+
+          // Comments UI
+          <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Your Comment:</Text>
+              <TextInput
+                style={{ borderColor: '#ccc', borderWidth: 1, borderRadius: 6, padding: 8, marginTop: 6 }}
+                placeholder="Write your comment..."
+                value={comment}
+                onChangeText={setComment}
+              />
+              <TouchableOpacity onPress={handlePostComment} style={{ backgroundColor: '#007BFF', padding: 10, marginTop: 8, borderRadius: 6 }}>
+                <Text style={{ color: 'white', textAlign: 'center' }}>💬 Post Comment</Text>
+              </TouchableOpacity>
+
+              <Text style={{ fontWeight: 'bold', marginTop: 12 }}>Comments:</Text>
+              <ScrollView style={{ maxHeight: 100, marginTop: 4 }}>
+                {comments.map(c => (
+                  <View key={c.id} style={{ marginBottom: 8 }}>
+                    <Text style={{ fontWeight: '600' }}>
+                      {typeof c.displayName === 'string' && typeof c.rating === 'number'
+                      ? `${c.displayName} ⭐ ${c.rating}`
+                      : 'Anonymous ⭐ 0'}
+                    </Text>
+                    <Text>{String(c.comment ?? '')}</Text>
+                  </View>
+                ))}
+              </ScrollView>
 
           <View style={{ marginTop: 12 }}>
             <Text

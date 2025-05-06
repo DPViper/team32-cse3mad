@@ -66,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
-          title: "Favorites",
+          title: "Recommended Favorites",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bookmarks-outline" size={size} color={color} />
           ),
@@ -109,7 +109,7 @@ function createThemedStyles(theme: any) {
       backgroundColor: theme.primary,
     },
     headerTitle: {
-      fontFamily: "PlusJakartaSans",
+      fontFamily: "PlusJakartaSansSemiBold",
     },
   });
 }

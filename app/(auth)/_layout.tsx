@@ -11,18 +11,18 @@ export default function AuthLayout() {
           backgroundColor: theme.primary,
         },
         headerTitleStyle: {
-          fontFamily: "PlusJakartaSans",
+          fontFamily: "PlusJakartaSansSemiBold",
         },
         headerTintColor: theme.textDark,
       }}
     >
       <Stack.Screen
         name="index"
-        options={{ title: "Log in", headerShown: true }}
+        options={{ title: "Log in", headerShown: false }}
       />
       <Stack.Screen
         name="register"
-        options={{ title: "Register", headerShown: true }}
+        options={{ title: "Register", headerShown: false }}
       />
       <Stack.Screen
         name="forgot-password"

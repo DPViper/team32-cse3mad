@@ -2,12 +2,12 @@ import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useState } from "react";
 
-export default function favorites() {
+export default function popular() {
   const theme = useTheme();
   const styles = createThemedStyles(theme);
   return (
     <View style={styles.container}>
-      <Text>favorites</Text>
+      <Text>popular</Text>
     </View>
   );
 }

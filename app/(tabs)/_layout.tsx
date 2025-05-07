@@ -65,9 +65,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="favorites"
+        name="popular"
         options={{
-          title: "Favorites",
+          title: "Popular",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bookmarks-outline" size={size} color={color} />
           ),

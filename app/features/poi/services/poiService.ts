@@ -2,11 +2,43 @@ import { db } from "@/lib/firebaseConfig";
 import {
   doc,
   getDocs,
+  getDoc,
   collection,
   updateDoc,
   addDoc,
   setDoc,
 } from "firebase/firestore";
+import { POI } from "../type";
+
+// Fetches full POI info from Firestore
+export const getPOIDetails = async (poiId: string): Promise<POI | null> => {
+  try {
+    const docRef = doc(db, "pois", poiId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as POI;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching POI details:", error);
+    return null;
+  }
+};
+
+// Fetches all comments for a POI
+export const getPOIComments = async (poiId: string) => {
+  try {
+    const commentsRef = collection(db, "pois", poiId, "comments");
+    const snapshot = await getDocs(commentsRef);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    console.error("Error fetching POI comments:", error);
+    return [];
+  }
+};
 
 // Tính average rating của 1 POI từ Firestore
 export const calculateAverageRating = async (
@@ -36,6 +68,7 @@ export const calculateAverageRating = async (
 // Lưu POI mới kèm rating ban đầu của người dùng
 export const savePOI = async (
   poi: {
+    id: string;
     title: string;
     description: string;
     coordinate: { latitude: number; longitude: number };
@@ -46,7 +79,8 @@ export const savePOI = async (
   rating: number
 ): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, "pois"), {
+    const docRef = doc(db, "pois", poi.id);
+    await setDoc(docRef, {
       title: poi.title,
       description: poi.description,
       latitude: poi.coordinate.latitude,
@@ -56,11 +90,6 @@ export const savePOI = async (
       image: poi.image ?? null,
       createdBy: user.uid,
       createdAt: new Date(),
-    });
-
-    await setDoc(doc(collection(docRef, "ratings"), user.uid), {
-      value: rating,
-      ratedAt: new Date(),
     });
 
     await calculateAverageRating(docRef.id);

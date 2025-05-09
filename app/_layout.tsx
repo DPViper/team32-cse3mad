@@ -11,6 +11,8 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Toast from "react-native-toast-message";
+import 'react-native-get-random-values';
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

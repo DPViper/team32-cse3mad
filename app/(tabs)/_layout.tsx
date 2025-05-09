@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
+import 'react-native-get-random-values';
 
 export default function TabLayout() {
   const router = useRouter();

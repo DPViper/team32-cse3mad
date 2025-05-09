@@ -146,7 +146,10 @@ export default function POIMapScreen() {
               key={poi.id}
               coordinate={poi.coordinate}
               title={poi.title}
-              onPress={() => setSelectedPOI(poi)}
+              onPress={() => {
+                const existing = pois.find((p) => p.id === poi.id);
+                if (existing) setSelectedPOI(existing);
+              }}
             />
           ) : null
         )}

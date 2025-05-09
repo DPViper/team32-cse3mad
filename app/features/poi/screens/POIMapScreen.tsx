@@ -76,17 +76,26 @@ export default function HomeScreen() {
     return () => unsub();
   }, [selectedPOI?.id]);
 
-  // Listen realtime commentscho
+  // Listen realtime comments
   useEffect(() => {
     if (selectedPOI) {
       const unsub = onSnapshot(
         collection(db, `pois/${selectedPOI.id}/comments`),
         (snapshot) => {
-          const commentList = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          setComments(commentList);
+          try {
+            const commentList = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setComments(commentList);
+          } catch (error) {
+            console.error("Error processing comments:", error);
+            Alert.alert("Error", "Failed to load comments");
+          }
+        },
+        (error) => {
+          console.error("Error fetching comments:", error);
+          Alert.alert("Error", "Failed to fetch comments");
         }
       );
       return () => unsub();
@@ -96,20 +105,12 @@ export default function HomeScreen() {
   // Function for handling rating change
   const handleRatingChange = async (newRating: number) => {
     if (!selectedPOI || !user) return;
-
     setRating(newRating);
-
     try {
-      // Save rating users
-      await setDoc(
-        doc(collection(db, `pois/${selectedPOI.id}/ratings`), user.uid),
-        {
-          value: newRating,
-          ratedAt: new Date(),
-        }
-      );
-
-      // Calculate and update average rating
+      await setDoc(doc(collection(db, `pois/${selectedPOI.id}/ratings`), user.uid), {
+        value: newRating,
+        ratedAt: new Date(),
+      });
       const avg = await calculateAverageRating(selectedPOI.id);
       setAverageRating(avg);
     } catch (error) {
@@ -165,35 +166,26 @@ export default function HomeScreen() {
 
   const handleSavePOI = async () => {
     if (!selectedPOI || !user) return;
-
     try {
-      await savePOI(selectedPOI, user, ratings);
-      Alert.alert(
-        "Shared!",
-        `${selectedPOI.title} is now visible to all users!`
-      );
-      setSelectedPOI(null);
-    } catch {
+      const docRef = doc(db, "pois", selectedPOI.id);
+      await setDoc(docRef, {
+        title: selectedPOI.title,
+        description: selectedPOI.description,
+        latitude: selectedPOI.coordinate.latitude,
+        longitude: selectedPOI.coordinate.longitude,
+        rating: ratings,
+        averageRating: ratings,
+        image: selectedPOI.image ?? null,
+        createdBy: user.uid,
+        createdAt: new Date(),
+      });
+      await handleRatingChange(ratings);
+      Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
+    } catch (err) {
+      console.error("Error saving POI:", err);
       Alert.alert("Error", "Failed to share POI.");
     }
   };
-
-  // Fetch comments
-  useEffect(() => {
-    if (selectedPOI) {
-      const unsub = onSnapshot(
-        collection(db, `pois/${selectedPOI.id}/comments`),
-        (snapshot) => {
-          const commentList = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          setComments(commentList);
-        }
-      );
-      return () => unsub();
-    }
-  }, [selectedPOI?.id]);
 
   const handlePostComment = async () => {
     if (!user || !selectedPOI || comment.trim() === "") return;
@@ -212,6 +204,7 @@ export default function HomeScreen() {
       Alert.alert("Error", "Failed to post comment");
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -289,11 +282,14 @@ export default function HomeScreen() {
           <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
           {/* {selectedPOI.rating && <Text>⭐ {selectedPOI.rating}</Text>} */}
           {/* Adding rating */}
-          <Text style={{ marginTop: 8, fontWeight: "bold" }}>Your Rating:</Text>
-          <Text style={{ fontSize: 14, color: "#888", marginTop: 4 }}>
-            Average Rating: {averageRating.toFixed(1)} ⭐
-          </Text>
-          <StarRating rating={ratings} onChange={handleRatingChange} />
+
+          // 
+          <StarRating
+            rating={ratings}
+            averageRating={averageRating}
+            onChange={handleRatingChange}
+          />
+
           {selectedPOI.image && (
             <Image
               source={{ uri: selectedPOI.image }}

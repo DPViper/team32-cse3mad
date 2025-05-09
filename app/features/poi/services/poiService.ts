@@ -58,7 +58,7 @@ export const savePOI = async (
       createdAt: new Date(),
     });
 
-    await setDoc(doc(collection(docRef, "ratings"), user.uid), {
+    await setDoc(doc(db, `pois/${docRef.id}/ratings/${user.uid}`), {
       value: rating,
       ratedAt: new Date(),
     });

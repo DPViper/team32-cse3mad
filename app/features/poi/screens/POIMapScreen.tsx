@@ -29,6 +29,7 @@ import {
 import { useTheme } from "@/contexts/ThemeContext";
 import { POI } from "../type";
 import StarRating from "../components/StarRating";
+import Comments from "../components/Comments";
 import { calculateAverageRating, savePOI } from "../services/poiService";
 
 export default function HomeScreen() {
@@ -39,9 +40,7 @@ export default function HomeScreen() {
   const mapRef = useRef<MapView>(null);
   const { user } = useAuth();
   const [ratings, setRating] = useState<number>(0);
-  const [averageRating, setAverageRating] = useState<number>(0); // create average rating
-  const [comment, setComment] = useState<string>(""); // create comments
-  const [comments, setComments] = useState<any[]>([]);
+  const [averageRating, setAverageRating] = useState<number>(0);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "pois"), (snapshot) => {
@@ -74,32 +73,6 @@ export default function HomeScreen() {
     });
 
     return () => unsub();
-  }, [selectedPOI?.id]);
-
-  // Listen realtime comments
-  useEffect(() => {
-    if (selectedPOI) {
-      const unsub = onSnapshot(
-        collection(db, `pois/${selectedPOI.id}/comments`),
-        (snapshot) => {
-          try {
-            const commentList = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
-            setComments(commentList);
-          } catch (error) {
-            console.error("Error processing comments:", error);
-            Alert.alert("Error", "Failed to load comments");
-          }
-        },
-        (error) => {
-          console.error("Error fetching comments:", error);
-          Alert.alert("Error", "Failed to fetch comments");
-        }
-      );
-      return () => unsub();
-    }
   }, [selectedPOI?.id]);
 
   // Function for handling rating change
@@ -187,25 +160,6 @@ export default function HomeScreen() {
     }
   };
 
-  const handlePostComment = async () => {
-    if (!user || !selectedPOI || comment.trim() === "") return;
-    try {
-      await addDoc(collection(db, `pois/${selectedPOI.id}/comments`), {
-        userId: user.uid,
-        displayName: user.displayName || "Anonymous",
-        comment,
-        rating: ratings,
-        createdAt: new Date(),
-      });
-      setComment("");
-      Alert.alert("Comment posted");
-    } catch (error) {
-      console.error("Error posting comment:", error);
-      Alert.alert("Error", "Failed to post comment");
-    }
-  };
-
-
   return (
     <View style={styles.container}>
       <GooglePlacesAutocomplete
@@ -280,10 +234,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <Text style={styles.poiTitle}>{selectedPOI.title}</Text>
           <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
-          {/* {selectedPOI.rating && <Text>⭐ {selectedPOI.rating}</Text>} */}
-          {/* Adding rating */}
-
-          // 
           <StarRating
             rating={ratings}
             averageRating={averageRating}
@@ -302,49 +252,9 @@ export default function HomeScreen() {
               resizeMode="cover"
             />
           )}
-          // Comments UI
-          <Text style={{ fontWeight: "bold", marginTop: 10 }}>
-            Your Comment:
-          </Text>
-          <TextInput
-            style={{
-              borderColor: "#ccc",
-              borderWidth: 1,
-              borderRadius: 6,
-              padding: 8,
-              marginTop: 6,
-            }}
-            placeholder="Write your comment..."
-            value={comment}
-            onChangeText={setComment}
-          />
-          <TouchableOpacity
-            onPress={handlePostComment}
-            style={{
-              backgroundColor: "#007BFF",
-              padding: 10,
-              marginTop: 8,
-              borderRadius: 6,
-            }}
-          >
-            <Text style={{ color: "white", textAlign: "center" }}>
-              💬 Post Comment
-            </Text>
-          </TouchableOpacity>
-          <Text style={{ fontWeight: "bold", marginTop: 12 }}>Comments:</Text>
-          <ScrollView style={{ maxHeight: 100, marginTop: 4 }}>
-            {comments.map((c) => (
-              <View key={c.id} style={{ marginBottom: 8 }}>
-                <Text style={{ fontWeight: "600" }}>
-                  {typeof c.displayName === "string" &&
-                  typeof c.rating === "number"
-                    ? `${c.displayName} ⭐ ${c.rating}`
-                    : "Anonymous ⭐ 0"}
-                </Text>
-                <Text>{String(c.comment ?? "")}</Text>
-              </View>
-            ))}
-          </ScrollView>
+
+          <Comments poiId={selectedPOI.id} ratings={ratings} />
+
           <View style={{ marginTop: 12 }}>
             <Text
               onPress={handleSavePOI}

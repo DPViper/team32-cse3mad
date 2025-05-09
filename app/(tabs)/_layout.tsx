@@ -1,4 +1,4 @@
-import { Tabs, Redirect } from "expo-router";
+import { Tabs, Redirect, useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, View, Platform } from "react-native";
 
@@ -16,6 +16,7 @@ import { StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TabLayout() {
+  const router = useRouter();
   const theme = useTheme();
   const styles = createThemedStyles(theme);
 
@@ -68,6 +69,7 @@ export default function TabLayout() {
         name="popular"
         options={{
           title: "Popular",
+          headerTitle: "Popular Places",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bookmarks-outline" size={size} color={color} />
           ),
@@ -88,6 +90,15 @@ export default function TabLayout() {
           title: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
+          ),
+          headerRight: () => (
+            <Ionicons
+              name="settings-outline"
+              size={24}
+              color={theme.textDark}
+              style={{ marginRight: 16 }}
+              onPress={() => router.push("/settings")}
+            />
           ),
         }}
       />

@@ -6,9 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Button,
 } from "react-native";
-import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -16,29 +14,9 @@ import { db } from "@/lib/firebaseConfig";
 import { updateDoc, doc, getDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import Toast from "react-native-toast-message";
+import { Button } from "@/components/ui/button";
 
 import { useTheme } from "@/contexts/ThemeContext";
-
-const favoritePlaces = [
-  {
-    id: "1",
-    name: "Paris Jazz Cat Club",
-    type: "Jazz Club - VIC 3000",
-    image: require("../../FakeAssets/img/pariscat.jpg"),
-  },
-  {
-    id: "2",
-    name: "LeTao Melbourne",
-    type: "Bakery - VIC 3000",
-    image: require("../../FakeAssets/img/letao.jpg"),
-  },
-  {
-    id: "3",
-    name: "Little Rogue.",
-    type: "Coffee Shop - VIC 3000",
-    image: require("../../FakeAssets/img/littlerogue.jpg"),
-  },
-];
 
 export default function profile() {
   const theme = useTheme();
@@ -118,19 +96,6 @@ export default function profile() {
         <Text style={styles.memberSince}>Joined Apr 2025</Text>
       </View>
 
-      {/* test button to log out */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#FF0000",
-          padding: 10,
-          borderRadius: 5,
-          marginBottom: 20,
-        }}
-        onPress={() => signOut(auth)}
-      >
-        <Text style={{ color: "#fff", textAlign: "center" }}>Log out</Text>
-      </TouchableOpacity>
-
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Display Name"
@@ -140,7 +105,29 @@ export default function profile() {
           style={styles.input}
         />
       </View>
-      <Button title="Save Changes" onPress={handleSave} />
+      <Button onPress={handleSave}>Save Changes</Button>
+
+      <FlatList
+        data={favoritePlaces}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => console.log("Navigate to detail:", item.id)}
+            style={styles.listItem}
+          >
+            {/* Place Image */}
+            <Image
+              source={item.image}
+              style={styles.placeImage}
+              resizeMode="cover"
+            />
+            {/* Place Name and Rating */}
+            <View style={styles.placeDetails}>
+              <Text style={styles.placeName}>{item.name}</Text>
+              <Text style={styles.placeRating}>{item.rating}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }
@@ -151,6 +138,7 @@ function createThemedStyles(theme: any) {
       flex: 1,
       backgroundColor: theme.primary,
       padding: 24,
+      gap: 20,
     },
     profile: {
       alignItems: "center",
@@ -172,33 +160,23 @@ function createThemedStyles(theme: any) {
       fontSize: 14,
       color: theme.secondary,
     },
-    favTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      marginBottom: 10,
-    },
-    placeItem: {
+    listItem: {
       flexDirection: "row",
+      marginBottom: 16,
       alignItems: "center",
-      marginBottom: 15,
+      gap: 12,
     },
-    placeImage: {
-      width: 50,
-      height: 50,
-      borderRadius: 8,
-      marginRight: 10,
-    },
-    placeInfo: {
-      flex: 1,
+    placeImage: { width: 130, height: 60, borderRadius: 8 },
+    placeDetails: {
+      gap: 10,
     },
     placeName: {
-      fontSize: 15,
-      fontWeight: "500",
+      fontSize: 16,
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSans",
+      fontWeight: "600",
     },
-    placeType: {
-      fontSize: 13,
-      color: "#777",
-    },
+    placeRating: { color: theme.textLight },
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -215,3 +193,25 @@ function createThemedStyles(theme: any) {
     },
   });
 }
+
+// Sample data for favorite places
+const favoritePlaces = [
+  {
+    id: "1",
+    name: "Farmer’s Daughters",
+    rating: 4.7,
+    image: require("../../FakeAssets/img/farmerdaughter.jpeg"),
+  },
+  {
+    id: "2",
+    name: "Library at Profilee Dock",
+    rating: 4.8,
+    image: require("../../FakeAssets/img/docklandlib.jpeg"),
+  },
+  {
+    id: "3",
+    name: "Point Ormond Lookout",
+    rating: 4.6,
+    image: require("../../FakeAssets/img/pointormond.jpg"),
+  },
+];

@@ -1,13 +1,65 @@
-import { View, Text, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useState } from "react";
-
 export default function popular() {
   const theme = useTheme();
   const styles = createThemedStyles(theme);
+
+  const [selectedTab, setSelectedTab] = useState<
+    "today" | "thisWeek" | "thisMonth"
+  >("today");
+  const data = popularData[selectedTab];
+
   return (
     <View style={styles.container}>
-      <Text>popular</Text>
+      {/* Tabs */}
+      <View style={styles.tabContainer}>
+        {["today", "thisWeek", "thisMonth"].map((tab) => (
+          <Text
+            key={tab}
+            style={[
+              styles.tabText,
+              selectedTab === tab && styles.tabTextSelected,
+            ]}
+            onPress={() => setSelectedTab(tab as any)}
+          >
+            {tab.replace(/([A-Z])/g, " $1").trim()}
+          </Text>
+        ))}
+      </View>
+
+      {/* POI List */}
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          // POI LIST ITEM
+          <TouchableOpacity
+            onPress={() => console.log("Navigate to detail:", item.id)}
+            style={styles.listItem}
+          >
+            {/* Place Image */}
+            <Image
+              source={item.image}
+              style={styles.placeImage}
+              resizeMode="cover"
+            />
+
+            {/* Place Name and Rating */}
+            <View style={styles.placeDetails}>
+              <Text style={styles.placeName}>{item.name}</Text>
+              <Text style={styles.placeRating}>{item.rating}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }
@@ -21,56 +73,68 @@ function createThemedStyles(theme: any) {
       padding: 20,
       gap: 12,
     },
-    title: {
-      fontSize: 24,
-      color: theme.textDark,
-      textAlign: "center",
-      marginBottom: 16,
-      fontFamily: "PlusJakartaSans",
-    },
-    error: {
-      color: "#B00020",
-      fontSize: 14,
+    tabContainer: {
+      flexDirection: "row",
+      gap: 12,
       marginBottom: 8,
     },
-    forgotPassword: {
-      color: theme.secondary,
-      fontSize: 14,
-      alignSelf: "flex-end",
-      textDecorationLine: "underline",
-      fontFamily: "PlusJakartaSansSemiBold",
+    tabText: {
+      fontFamily: "PlusJakartaSans",
+      textTransform: "capitalize",
+      paddingBottom: 4,
+      color: theme.textLight,
     },
-    registerLink: {
-      color: theme.secondary,
-      fontSize: 14,
-      textAlign: "center",
-      textDecorationLine: "underline",
-      fontFamily: "PlusJakartaSansSemiBold",
-      marginTop: 8,
+    tabTextSelected: {
+      color: theme.textDark,
+      borderBottomWidth: 2,
+      borderColor: theme.textDark,
     },
+    listItem: {
+      flexDirection: "row",
+      marginBottom: 16,
+      alignItems: "center",
+      gap: 12,
+    },
+    placeImage: { width: 130, height: 60, borderRadius: 8 },
+    placeDetails: {
+      gap: 10,
+    },
+    placeName: {
+      fontSize: 16,
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSans",
+      fontWeight: "600",
+    },
+    placeRating: { color: theme.textLight },
   });
 }
 
-const favoritePlaces = [
+// Sample data for popular places
+const popularPlaces = [
   {
     id: "1",
     name: "Farmer’s Daughters",
     rating: 4.7,
-    category: "Restaurant",
     image: require("../../FakeAssets/img/farmerdaughter.jpeg"),
   },
   {
     id: "2",
     name: "Library at The Dock",
     rating: 4.8,
-    category: "Library",
     image: require("../../FakeAssets/img/docklandlib.jpeg"),
   },
   {
     id: "3",
     name: "Point Ormond Lookout",
     rating: 4.6,
-    category: "Scenic Spot",
     image: require("../../FakeAssets/img/pointormond.jpg"),
   },
 ];
+
+// this is data for the tabs
+// today, thisWeek, thisMonth
+const popularData = {
+  today: [...popularPlaces],
+  thisWeek: [...popularPlaces.slice(0, 2)],
+  thisMonth: [...popularPlaces.slice(1)],
+};

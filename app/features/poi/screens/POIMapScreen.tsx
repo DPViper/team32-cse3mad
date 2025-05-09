@@ -7,12 +7,18 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { db } from "@/lib/firebaseConfig";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { POI } from "../type";
+<<<<<<< HEAD
 import { fetchPlaceDetails } from "@/lib/places";
 import { savePOI } from "../services/poiService";
 import { POICard } from "../components/POICard";
 import { POIDetailModal } from "../components/POIDetailModal";
 import Constants from "expo-constants";
 import 'react-native-get-random-values';
+=======
+import StarRating from "../components/StarRating";
+import Comments from "../components/Comments";
+import { calculateAverageRating, savePOI } from "../services/poiService";
+>>>>>>> e09752e (seperate Comments file)
 
 export default function POIMapScreen() {
   const { user } = useAuth();
@@ -21,7 +27,14 @@ export default function POIMapScreen() {
 
   const [pois, setPOIs] = useState<POI[]>([]);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
+<<<<<<< HEAD
   const [showDetail, setShowDetail] = useState(false);
+=======
+  const mapRef = useRef<MapView>(null);
+  const { user } = useAuth();
+  const [ratings, setRating] = useState<number>(0);
+  const [averageRating, setAverageRating] = useState<number>(0);
+>>>>>>> e09752e (seperate Comments file)
 
   // Load POIs from Firestore
   useEffect(() => {
@@ -129,6 +142,7 @@ export default function POIMapScreen() {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const isExistingPOI = selectedPOI && pois.some((p) => p.id === selectedPOI.id);
 =======
   const handlePostComment = async () => {
@@ -151,6 +165,8 @@ export default function POIMapScreen() {
 >>>>>>> d14e6a5 (fix comments)
 
 
+=======
+>>>>>>> e09752e (seperate Comments file)
   return (
     <View style={styles.container}>
       <GooglePlacesAutocomplete
@@ -212,10 +228,6 @@ export default function POIMapScreen() {
           </TouchableOpacity>
           <Text style={styles.poiTitle}>{selectedPOI.title}</Text>
           <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
-          {/* {selectedPOI.rating && <Text>⭐ {selectedPOI.rating}</Text>} */}
-          {/* Adding rating */}
-
-          // 
           <StarRating
             rating={ratings}
             averageRating={averageRating}
@@ -234,6 +246,7 @@ export default function POIMapScreen() {
               resizeMode="cover"
             />
           )}
+<<<<<<< HEAD
           // Comments UI
           <Text style={{ fontWeight: "bold", marginTop: 10 }}>
             Your Comment:
@@ -251,6 +264,26 @@ export default function POIMapScreen() {
             onChangeText={setComment}
 >>>>>>> d14e6a5 (fix comments)
           />
+=======
+
+          <Comments poiId={selectedPOI.id} ratings={ratings} />
+
+          <View style={{ marginTop: 12 }}>
+            <Text
+              onPress={handleSavePOI}
+              style={{
+                backgroundColor: "#4CAF50",
+                color: "white",
+                textAlign: "center",
+                paddingVertical: 10,
+                borderRadius: 8,
+                fontWeight: "bold",
+              }}
+            >
+              ➕ Add to POIs
+            </Text>
+          </View>
+>>>>>>> e09752e (seperate Comments file)
         </View>
       )}
 

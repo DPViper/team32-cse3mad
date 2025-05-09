@@ -97,8 +97,8 @@ export default function POIMapScreen() {
 
   const handleSavePOI = async () => {
     if (!selectedPOI || !user) return;
-
     try {
+<<<<<<< HEAD
       const id = await savePOI(selectedPOI, user, selectedPOI.rating || 0);
 
       const updatedPOI = { ...selectedPOI, id };
@@ -106,11 +106,50 @@ export default function POIMapScreen() {
 
       Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
     } catch {
+=======
+      const docRef = doc(db, "pois", selectedPOI.id);
+      await setDoc(docRef, {
+        title: selectedPOI.title,
+        description: selectedPOI.description,
+        latitude: selectedPOI.coordinate.latitude,
+        longitude: selectedPOI.coordinate.longitude,
+        rating: ratings,
+        averageRating: ratings,
+        image: selectedPOI.image ?? null,
+        createdBy: user.uid,
+        createdAt: new Date(),
+      });
+      await handleRatingChange(ratings);
+      Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
+    } catch (err) {
+      console.error("Error saving POI:", err);
+>>>>>>> d14e6a5 (fix comments)
       Alert.alert("Error", "Failed to share POI.");
     }
   };
 
+<<<<<<< HEAD
   const isExistingPOI = selectedPOI && pois.some((p) => p.id === selectedPOI.id);
+=======
+  const handlePostComment = async () => {
+    if (!user || !selectedPOI || comment.trim() === "") return;
+    try {
+      await addDoc(collection(db, `pois/${selectedPOI.id}/comments`), {
+        userId: user.uid,
+        displayName: user.displayName || "Anonymous",
+        comment,
+        rating: ratings,
+        createdAt: new Date(),
+      });
+      setComment("");
+      Alert.alert("Comment posted");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      Alert.alert("Error", "Failed to post comment");
+    }
+  };
+>>>>>>> d14e6a5 (fix comments)
+
 
   return (
     <View style={styles.container}>
@@ -156,12 +195,61 @@ export default function POIMapScreen() {
       </MapView>
 
       {selectedPOI && (
+<<<<<<< HEAD
         <View style={{ position: "absolute", bottom: 10, width: "100%", paddingHorizontal: 10 }}>
           <POICard
             poi={selectedPOI}
             isInFirestore={!!isExistingPOI}
             onViewDetails={() => setShowDetail(true)}
             onAdd={() => handleSavePOI()}
+=======
+        <View style={styles.detailCard}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setSelectedPOI(null)}
+          >
+            <Text style={{ fontSize: 16 }}>❌</Text>
+          </TouchableOpacity>
+          <Text style={styles.poiTitle}>{selectedPOI.title}</Text>
+          <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
+          {/* {selectedPOI.rating && <Text>⭐ {selectedPOI.rating}</Text>} */}
+          {/* Adding rating */}
+
+          // 
+          <StarRating
+            rating={ratings}
+            averageRating={averageRating}
+            onChange={handleRatingChange}
+          />
+
+          {selectedPOI.image && (
+            <Image
+              source={{ uri: selectedPOI.image }}
+              style={{
+                width: "100%",
+                height: 150,
+                borderRadius: 8,
+                marginTop: 8,
+              }}
+              resizeMode="cover"
+            />
+          )}
+          // Comments UI
+          <Text style={{ fontWeight: "bold", marginTop: 10 }}>
+            Your Comment:
+          </Text>
+          <TextInput
+            style={{
+              borderColor: "#ccc",
+              borderWidth: 1,
+              borderRadius: 6,
+              padding: 8,
+              marginTop: 6,
+            }}
+            placeholder="Write your comment..."
+            value={comment}
+            onChangeText={setComment}
+>>>>>>> d14e6a5 (fix comments)
           />
         </View>
       )}

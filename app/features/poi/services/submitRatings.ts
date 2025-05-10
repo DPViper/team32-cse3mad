@@ -15,7 +15,6 @@ export async function SubmitRating({poiId, rating, user} : SubmitRatingProps) {
     await addDoc(collection(db, `pois/${poiId}/ratings`), {
       userId: user.uid,
       rating,
-      comment,
       createdAt: serverTimestamp(),
     });
   } catch (error : any) {

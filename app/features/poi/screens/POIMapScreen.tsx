@@ -7,18 +7,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { db } from "@/lib/firebaseConfig";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { POI } from "../type";
-<<<<<<< HEAD
 import { fetchPlaceDetails } from "@/lib/places";
 import { savePOI } from "../services/poiService";
 import { POICard } from "../components/POICard";
 import { POIDetailModal } from "../components/POIDetailModal";
 import Constants from "expo-constants";
 import 'react-native-get-random-values';
-=======
-import StarRating from "../components/StarRating";
-import Comments from "../components/Comments";
-import { calculateAverageRating, savePOI } from "../services/poiService";
->>>>>>> e09752e (seperate Comments file)
 
 export default function POIMapScreen() {
   const { user } = useAuth();
@@ -27,14 +21,7 @@ export default function POIMapScreen() {
 
   const [pois, setPOIs] = useState<POI[]>([]);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
-<<<<<<< HEAD
   const [showDetail, setShowDetail] = useState(false);
-=======
-  const mapRef = useRef<MapView>(null);
-  const { user } = useAuth();
-  const [ratings, setRating] = useState<number>(0);
-  const [averageRating, setAverageRating] = useState<number>(0);
->>>>>>> e09752e (seperate Comments file)
 
   // Load POIs from Firestore
   useEffect(() => {
@@ -110,8 +97,8 @@ export default function POIMapScreen() {
 
   const handleSavePOI = async () => {
     if (!selectedPOI || !user) return;
+
     try {
-<<<<<<< HEAD
       const id = await savePOI(selectedPOI, user, selectedPOI.rating || 0);
 
       const updatedPOI = { ...selectedPOI, id };
@@ -119,54 +106,12 @@ export default function POIMapScreen() {
 
       Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
     } catch {
-=======
-      const docRef = doc(db, "pois", selectedPOI.id);
-      await setDoc(docRef, {
-        title: selectedPOI.title,
-        description: selectedPOI.description,
-        latitude: selectedPOI.coordinate.latitude,
-        longitude: selectedPOI.coordinate.longitude,
-        rating: ratings,
-        averageRating: ratings,
-        image: selectedPOI.image ?? null,
-        createdBy: user.uid,
-        createdAt: new Date(),
-      });
-      await handleRatingChange(ratings);
-      Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
-    } catch (err) {
-      console.error("Error saving POI:", err);
->>>>>>> d14e6a5 (fix comments)
       Alert.alert("Error", "Failed to share POI.");
     }
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   const isExistingPOI = selectedPOI && pois.some((p) => p.id === selectedPOI.id);
-=======
-  const handlePostComment = async () => {
-    if (!user || !selectedPOI || comment.trim() === "") return;
-    try {
-      await addDoc(collection(db, `pois/${selectedPOI.id}/comments`), {
-        userId: user.uid,
-        displayName: user.displayName || "Anonymous",
-        comment,
-        rating: ratings,
-        createdAt: new Date(),
-      });
-      setComment("");
-      Alert.alert("Comment posted");
-    } catch (error) {
-      console.error("Error posting comment:", error);
-      Alert.alert("Error", "Failed to post comment");
-    }
-  };
->>>>>>> d14e6a5 (fix comments)
 
-
-=======
->>>>>>> e09752e (seperate Comments file)
   return (
     <View style={styles.container}>
       <GooglePlacesAutocomplete
@@ -211,79 +156,13 @@ export default function POIMapScreen() {
       </MapView>
 
       {selectedPOI && (
-<<<<<<< HEAD
         <View style={{ position: "absolute", bottom: 10, width: "100%", paddingHorizontal: 10 }}>
           <POICard
             poi={selectedPOI}
             isInFirestore={!!isExistingPOI}
             onViewDetails={() => setShowDetail(true)}
             onAdd={() => handleSavePOI()}
-=======
-        <View style={styles.detailCard}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setSelectedPOI(null)}
-          >
-            <Text style={{ fontSize: 16 }}>❌</Text>
-          </TouchableOpacity>
-          <Text style={styles.poiTitle}>{selectedPOI.title}</Text>
-          <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
-          <StarRating
-            rating={ratings}
-            averageRating={averageRating}
-            onChange={handleRatingChange}
           />
-
-          {selectedPOI.image && (
-            <Image
-              source={{ uri: selectedPOI.image }}
-              style={{
-                width: "100%",
-                height: 150,
-                borderRadius: 8,
-                marginTop: 8,
-              }}
-              resizeMode="cover"
-            />
-          )}
-<<<<<<< HEAD
-          // Comments UI
-          <Text style={{ fontWeight: "bold", marginTop: 10 }}>
-            Your Comment:
-          </Text>
-          <TextInput
-            style={{
-              borderColor: "#ccc",
-              borderWidth: 1,
-              borderRadius: 6,
-              padding: 8,
-              marginTop: 6,
-            }}
-            placeholder="Write your comment..."
-            value={comment}
-            onChangeText={setComment}
->>>>>>> d14e6a5 (fix comments)
-          />
-=======
-
-          <Comments poiId={selectedPOI.id} ratings={ratings} />
-
-          <View style={{ marginTop: 12 }}>
-            <Text
-              onPress={handleSavePOI}
-              style={{
-                backgroundColor: "#4CAF50",
-                color: "white",
-                textAlign: "center",
-                paddingVertical: 10,
-                borderRadius: 8,
-                fontWeight: "bold",
-              }}
-            >
-              ➕ Add to POIs
-            </Text>
-          </View>
->>>>>>> e09752e (seperate Comments file)
         </View>
       )}
 

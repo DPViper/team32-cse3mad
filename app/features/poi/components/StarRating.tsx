@@ -1,26 +1,49 @@
-import { View, Text, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { submitRating } from "../services/submitRatings";
 
-export default function StarRating({
-  rating,
-  onChange,
-}: {
+type StarRatingProps = {
   rating: number;
+  itemId: string;
+  userId: string;
   onChange: (value: number) => void;
-}) {
+};
+
+export default function StarRating({ rating, onChange, itemId, userId }: StarRatingProps) {
   const stars = [1, 2, 3, 4, 5];
+
+  const handlePress = (star: number) => {
+    // update local UI
+    onChange(star);
+
+    // persist to Firestore
+    submitRating(itemId, userId, star);
+  };
+  
   return (
-    <View style={{ flexDirection: "row", marginVertical: 8 }}>
+    <View style={styles.container}>
       {stars.map((star) => (
         <TouchableOpacity key={star} onPress={() => onChange(star)}>
-          <Ionicons
-            name={star <= rating ? "star" : "star-outline"}
-            size={24}
-            color={"#171412"}
-            style={{ marginHorizontal: 2 }}
-          />
+          <Text style={[styles.star, star <= rating && styles.filled]}>
+            ★
+          </Text>
         </TouchableOpacity>
       ))}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    marginVertical: 8,
+  },
+  star: {
+    fontSize: 24,
+    color: "#CCC",
+    marginHorizontal: 2,
+  },
+  filled: {
+    color: "#FFD700",
+  },
+});

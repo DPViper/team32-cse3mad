@@ -1,9 +1,6 @@
-import { View, Text } from "react-native";
+import FriendListScreen from "../features/poi/screens/FriendListScreen";
 
-export default function friends() {
-  return (
-    <View>
-      <Text>friends</Text>
-    </View>
-  );
+export default function HomeScreen() {
+  return <FriendListScreen />;
 }
+

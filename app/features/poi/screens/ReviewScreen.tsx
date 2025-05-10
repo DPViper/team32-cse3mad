@@ -1,133 +1,75 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import StarRating from '../components/StarRating';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
-import { useAuth } from '@/hooks/useAuth';
-
-// Define route params type
-type ReviewRouteParams = {
-  params: {
-    poiId: string;
-    imageUrl: string;
-  };
-};
-
-type Navigation = {
-  navigate: (screen: string, params: any) => void;
-  goBack: () => void;
-};
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { useState } from "react";
+import StarRating from "@/app/features/poi/components/StarRating";
+import { submitRating } from "@/app/features/poi/services/submitRatings";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ReviewScreen() {
-  const navigation = useNavigation<Navigation>();
-  const route = useRoute<RouteProp<ReviewRouteParams, 'params'>>();
-  const { poiId, imageUrl } = route.params;
+  const { id, image } = useLocalSearchParams();
+  const router = useRouter();
   const { user } = useAuth();
 
-  const [ratings, setRatings] = useState(0);
-  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
+  const [text, setText] = useState("");
 
   const handleSubmit = async () => {
-    if (!user) {
-      Alert.alert('Error', 'Please log in to submit a review.');
+    if (!user || !id) {
+      Alert.alert("Error", "Missing user or POI ID.");
       return;
     }
-    if (ratings === 0 || comment.trim() === '') {
-      Alert.alert('Error', 'Please provide a rating and comment.');
-      return;
-    }
+
     try {
-      await addDoc(collection(db, `pois/${poiId}/comments`), {
-        userId: user.uid,
-        ratings,
-        comment,
-        createdAt: new Date(),
-      });
-      Alert.alert('Success', 'Review submitted.');
-      navigation.goBack();
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Error', 'Unable to submit review. Please try again.');
+      await submitRating(id.toString(), user.uid, rating, text);
+      Alert.alert("Thank you!", "Your review has been submitted.");
+      router.back();
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      Alert.alert("Error", "Could not submit review.");
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Upload Review</Text>
-      <View style={styles.imageWrapper}>
-        <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
-      </View>
-      <View style={{ padding: 20 }}>
-      <Text>Rate this item:</Text>
+      {image && (
+        <Image source={{ uri: image as string }} style={styles.image} />
+      )}
 
-      <StarRating 
-        rating={ratings} 
-        itemId={poiId}
-        userId={user.uid}
-        onChange={(newRating) => setRatings(newRating)} 
-      />
+      <StarRating rating={rating} onChange={setRating} />
 
-      <Text>Your rating: {ratings}</Text>
-    </View>
       <TextInput
-        style={styles.textInput}
         placeholder="Write your review..."
-        placeholderTextColor="#999"
-        value={comment}
-        onChangeText={setComment}
+        value={text}
+        onChangeText={setText}
         multiline
+        style={styles.textbox}
       />
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitText}>Submit Review</Text>
+
+      <TouchableOpacity onPress={handleSubmit} style={styles.button}>
+        <Text style={styles.buttonText}>Submit Review</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  header: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  imageWrapper: {
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  image: {
-    width: width - 32,
-    height: (width - 32) * 0.4,
-  },
-  textInput: {
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  header: { fontSize: 20, fontWeight: "bold", marginBottom: 12 },
+  image: { height: 200, width: "100%", borderRadius: 8, marginBottom: 16 },
+  textbox: {
+    height: 120,
+    borderColor: "#ccc",
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
-    height: 100,
-    textAlignVertical: 'top',
-    marginVertical: 16,
-    backgroundColor: '#f9f9f9',
+    padding: 10,
+    textAlignVertical: "top",
+    marginBottom: 16,
   },
-  submitButton: {
-    backgroundColor: '#f08a24',
-    paddingVertical: 14,
+  button: {
+    backgroundColor: "#F58A07",
+    paddingVertical: 12,
     borderRadius: 8,
-    alignItems: 'center',
   },
-  submitText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  buttonText: { textAlign: "center", color: "#fff", fontWeight: "600" },
 });

@@ -4,6 +4,8 @@ import { POI } from "../type";
 import { getPOIDetails, getPOIComments } from "../services/poiService";
 import StarRating from "./StarRating";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   poiId: string;
@@ -14,6 +16,8 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
   const theme = useTheme();
   const [poi, setPOI] = useState<POI | null>(null);
   const [comments, setComments] = useState<any[]>([]);
+  const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -39,9 +43,24 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
         <Text style={{ fontSize: 18, marginTop: 10 }}>
           Rating: {poi.averageRating?.toFixed(1) || "N/A"}
         </Text>
-        <StarRating rating={poi.averageRating || 0} onChange={() => {}} />
+        <StarRating
+          itemId={poi.id}
+          userId={user?.uid || ""}
+          rating={poi.averageRating || 0}
+          onChange={() => {}}
+        />
 
-        <TouchableOpacity style={[styles.reviewButton, { backgroundColor: theme.primary }]}>
+        <TouchableOpacity
+          style={[styles.reviewButton, { backgroundColor: theme.primary }]}
+          onPress={() => router.push({
+            pathname: "/features/poi/screens/ReviewScreen",
+            params: {
+              id: poi.id,
+              title: poi.title,
+              image: poi.image,
+            }
+          })}
+        >
           <Text style={{ color: "#fff", textAlign: "center" }}>Post a Review</Text>
         </TouchableOpacity>
 
@@ -49,7 +68,12 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
         {comments.map((comment, idx) => (
           <View key={idx} style={styles.comment}>
             <Text style={styles.commentAuthor}>{comment.userName}</Text>
-            <StarRating rating={comment.rating} onChange={() => {}} />
+            <StarRating
+              itemId={poi.id}
+              userId={user?.uid || ""}
+              rating={comment.rating}
+              onChange={() => {}}
+            />
             <Text>{comment.text}</Text>
           </View>
         ))}

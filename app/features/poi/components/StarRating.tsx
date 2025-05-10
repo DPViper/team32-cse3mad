@@ -4,8 +4,8 @@ import { submitRating } from "../services/submitRatings";
 
 type StarRatingProps = {
   rating: number;
-  itemId: string;
-  userId: string;
+  itemId?: string;
+  userId?: string;
   onChange: (value: number) => void;
 };
 
@@ -13,12 +13,13 @@ export default function StarRating({ rating, onChange, itemId, userId }: StarRat
   const stars = [1, 2, 3, 4, 5];
 
   const handlePress = (star: number) => {
-    // update local UI
-    onChange(star);
+  onChange(star);
 
-    // persist to Firestore
-    submitRating(itemId, userId, star);
-  };
+  // only submit if IDs are provided
+  if (itemId && userId) {
+    submitRating(itemId, userId, star, "");
+  }
+};
   
   return (
     <View style={styles.container}>

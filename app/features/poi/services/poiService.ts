@@ -92,6 +92,11 @@ export const savePOI = async (
       createdAt: new Date(),
     });
 
+    await setDoc(doc(db, `pois/${docRef.id}/ratings/${user.uid}`), {
+      value: rating,
+      ratedAt: new Date(),
+    });
+
     await calculateAverageRating(docRef.id);
     return docRef.id;
   } catch (err) {

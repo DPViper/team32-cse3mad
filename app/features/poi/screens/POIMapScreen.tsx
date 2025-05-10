@@ -7,9 +7,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { db } from "@/lib/firebaseConfig";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { POI } from "../type";
-import StarRating from "../components/StarRating";
-import Comments from "../components/Comments";
-import { calculateAverageRating, savePOI } from "../services/poiService";
+import { fetchPlaceDetails } from "@/lib/places";
+import { savePOI } from "../services/poiService";
+import { POICard } from "../components/POICard";
+import { POIDetailModal } from "../components/POIDetailModal";
+import Constants from "expo-constants";
+import 'react-native-get-random-values';
 
 export default function POIMapScreen() {
   const { user } = useAuth();
@@ -18,10 +21,7 @@ export default function POIMapScreen() {
 
   const [pois, setPOIs] = useState<POI[]>([]);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
-  const mapRef = useRef<MapView>(null);
-  const { user } = useAuth();
-  const [ratings, setRating] = useState<number>(0);
-  const [averageRating, setAverageRating] = useState<number>(0);
+  const [showDetail, setShowDetail] = useState(false);
 
   // Load POIs from Firestore
   useEffect(() => {
@@ -47,24 +47,7 @@ export default function POIMapScreen() {
     });
 
     return () => unsub();
-  }, [selectedPOI?.id]);
-
-  // Function for handling rating change
-  const handleRatingChange = async (newRating: number) => {
-    if (!selectedPOI || !user) return;
-    setRating(newRating);
-    try {
-      await setDoc(doc(collection(db, `pois/${selectedPOI.id}/ratings`), user.uid), {
-        value: newRating,
-        ratedAt: new Date(),
-      });
-      const avg = await calculateAverageRating(selectedPOI.id);
-      setAverageRating(avg);
-    } catch (error) {
-      console.error("Error updating rating:", error);
-      Alert.alert("Error", "Failed to update rating");
-    }
-  };
+  }, []);
 
   // Handle place selection
   const handlePlaceSelect = async (data: any) => {
@@ -114,26 +97,20 @@ export default function POIMapScreen() {
 
   const handleSavePOI = async () => {
     if (!selectedPOI || !user) return;
+
     try {
-      const docRef = doc(db, "pois", selectedPOI.id);
-      await setDoc(docRef, {
-        title: selectedPOI.title,
-        description: selectedPOI.description,
-        latitude: selectedPOI.coordinate.latitude,
-        longitude: selectedPOI.coordinate.longitude,
-        rating: ratings,
-        averageRating: ratings,
-        image: selectedPOI.image ?? null,
-        createdBy: user.uid,
-        createdAt: new Date(),
-      });
-      await handleRatingChange(ratings);
+      const id = await savePOI(selectedPOI, user, selectedPOI.rating || 0);
+
+      const updatedPOI = { ...selectedPOI, id };
+      setSelectedPOI(updatedPOI);
+
       Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
-    } catch (err) {
-      console.error("Error saving POI:", err);
+    } catch {
       Alert.alert("Error", "Failed to share POI.");
     }
   };
+
+  const isExistingPOI = selectedPOI && pois.some((p) => p.id === selectedPOI.id);
 
   return (
     <View style={styles.container}>
@@ -179,51 +156,13 @@ export default function POIMapScreen() {
       </MapView>
 
       {selectedPOI && (
-        <View style={styles.detailCard}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setSelectedPOI(null)}
-          >
-            <Text style={{ fontSize: 16 }}>❌</Text>
-          </TouchableOpacity>
-          <Text style={styles.poiTitle}>{selectedPOI.title}</Text>
-          <Text style={styles.poiDescription}>{selectedPOI.description}</Text>
-          <StarRating
-            rating={ratings}
-            averageRating={averageRating}
-            onChange={handleRatingChange}
+        <View style={{ position: "absolute", bottom: 10, width: "100%", paddingHorizontal: 10 }}>
+          <POICard
+            poi={selectedPOI}
+            isInFirestore={!!isExistingPOI}
+            onViewDetails={() => setShowDetail(true)}
+            onAdd={() => handleSavePOI()}
           />
-
-          {selectedPOI.image && (
-            <Image
-              source={{ uri: selectedPOI.image }}
-              style={{
-                width: "100%",
-                height: 150,
-                borderRadius: 8,
-                marginTop: 8,
-              }}
-              resizeMode="cover"
-            />
-          )}
-
-          <Comments poiId={selectedPOI.id} ratings={ratings} />
-
-          <View style={{ marginTop: 12 }}>
-            <Text
-              onPress={handleSavePOI}
-              style={{
-                backgroundColor: "#4CAF50",
-                color: "white",
-                textAlign: "center",
-                paddingVertical: 10,
-                borderRadius: 8,
-                fontWeight: "bold",
-              }}
-            >
-              ➕ Add to POIs
-            </Text>
-          </View>
         </View>
       )}
 

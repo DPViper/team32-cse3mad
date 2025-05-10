@@ -9,13 +9,13 @@ import {
 } from "react-native";
 import { auth } from "@/lib/firebaseConfig";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebaseConfig";
 import { updateDoc, doc, getDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import Toast from "react-native-toast-message";
 import { Button } from "@/components/ui/button";
-
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function profile() {
@@ -24,6 +24,21 @@ export default function profile() {
   const { profile, refreshProfile } = useAuth();
   const [name, setName] = useState(profile?.displayName || "");
   const [phone, setPhone] = useState(profile?.phone || "");
+  const { user } = useAuth();
+  const router = useRouter();
+  const avatarUrl = user?.photoURL ?? "https://api.dicebear.com/7.x/adventurer/png?seed=default";
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      const docRef = doc(db, "users", user.uid);
+      const snapshot = await getDoc(docRef);
+      if (snapshot.exists()) {
+        setName(snapshot.data().displayName);
+      }
+    };
+    loadProfile();
+  }, [user]);
 
   const handleSave = async () => {
     const uid = auth.currentUser?.uid;
@@ -82,30 +97,18 @@ export default function profile() {
     <View style={styles.container}>
       {/* Avatar and information */}
       <View style={styles.profile}>
-        {name && (
-          <Image
-            source={{
-              uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                name
-              )}&background=random&rounded=true&size=64`,
-            }}
-            style={styles.avatar}
-          />
-        )}
-        <Text style={styles.name}>{name}</Text>
+        {/* Avatar */}
+      <View style={styles.avatarContainer}>
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+      </View>
+        <Text style={styles.name}>{auth.currentUser?.displayName ?? "Your Name"}</Text>
         <Text style={styles.memberSince}>Joined Apr 2025</Text>
       </View>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Display Name"
-          placeholderTextColor={theme.placeholderText}
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-        />
-      </View>
-      <Button onPress={handleSave}>Save Changes</Button>
+      {/* Settings Button */}
+      <TouchableOpacity onPress={() => router.push("/settings")} style={styles.button}>
+        <Text style={styles.buttonText}>Edit Profile</Text>
+      </TouchableOpacity>
 
       <FlatList
         data={favoritePlaces}
@@ -134,6 +137,26 @@ export default function profile() {
 
 function createThemedStyles(theme: any) {
   return StyleSheet.create({
+    avatarContainer: {
+      marginTop: 60,
+      marginBottom: 20,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      overflow: "hidden",
+      backgroundColor: "#ccc",
+    },
+    button: {
+      backgroundColor: "#ffa200",
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+    },
+    buttonText: {
+      color: "#fff",
+      fontWeight: "600",
+      textAlign: "center",
+    },
     container: {
       flex: 1,
       backgroundColor: theme.primary,

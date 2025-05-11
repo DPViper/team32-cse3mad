@@ -1,24 +1,19 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { submitRating } from "../services/submitRatings";
+import { SubmitRating } from "../services/submitRatings";
 
 type StarRatingProps = {
+  poiId: string;
   rating: number;
-  itemId?: string;
   userId?: string;
   onChange: (value: number) => void;
 };
 
-export default function StarRating({ rating, onChange, itemId, userId }: StarRatingProps) {
+export default function StarRating({ rating, onChange, userId }: StarRatingProps) {
   const stars = [1, 2, 3, 4, 5];
 
   const handlePress = (star: number) => {
   onChange(star);
-
-  // only submit if IDs are provided
-  if (itemId && userId) {
-    submitRating(itemId, userId, star, "");
-  }
 };
   
   return (

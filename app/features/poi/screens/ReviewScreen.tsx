@@ -1,9 +1,11 @@
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { useState } from "react";
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native";
+import { useState, useEffect } from "react";
 import StarRating from "@/app/features/poi/components/StarRating";
-import { submitRating } from "@/app/features/poi/services/submitRatings";
+import { SubmitRating } from "@/app/features/poi/services/submitRatings";
 import { useAuth } from "@/hooks/useAuth";
+import { SubmitComments } from "@/app/features/poi/services/submitComments";
+
 
 export default function ReviewScreen() {
   const { id, image } = useLocalSearchParams();
@@ -20,7 +22,18 @@ export default function ReviewScreen() {
     }
 
     try {
-      await submitRating(id.toString(), user.uid, rating, text);
+      await SubmitRating({
+        poiId: id.toString(), 
+        rating,
+        user,
+      });
+      await SubmitComments({
+        poiId: id.toString(),
+        rating,
+        comment: text,
+        user,
+      });
+
       Alert.alert("Thank you!", "Your review has been submitted.");
       router.back();
     } catch (error) {
@@ -36,7 +49,12 @@ export default function ReviewScreen() {
         <Image source={{ uri: image as string }} style={styles.image} />
       )}
 
-      <StarRating rating={rating} onChange={setRating} />
+      <StarRating 
+        rating={rating} 
+        onChange={setRating} 
+        poiId={id.toString()}
+      />
+
 
       <TextInput
         placeholder="Write your review..."
@@ -50,6 +68,8 @@ export default function ReviewScreen() {
         <Text style={styles.buttonText}>Submit Review</Text>
       </TouchableOpacity>
     </View>
+
+      
   );
 }
 
@@ -72,4 +92,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   buttonText: { textAlign: "center", color: "#fff", fontWeight: "600" },
+
 });
+

@@ -21,7 +21,6 @@ export const POICard = ({
 }: Props) => {
   const theme = useTheme();
   const styles = createThemedStyles(theme);
-  console.log(poi);
   return (
     <View style={styles.card}>
       {/* Image  */}

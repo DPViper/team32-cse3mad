@@ -18,7 +18,7 @@ function createThemedStyles(theme: any) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: theme.primary,
     },
   });
 }

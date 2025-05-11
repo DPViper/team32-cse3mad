@@ -46,6 +46,7 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
+
       <SafeAreaProvider>
         <SafeScreen>
           <ScrollView style={styles.container}>
@@ -72,6 +73,7 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
               />
             </View>
 
+
             <Button
               onPress={() =>
                 router.push({
@@ -86,6 +88,7 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
             >
               Post a Review
             </Button>
+
 
             {/* review section */}
             <Text style={styles.reviewHeader}>Reviews</Text>

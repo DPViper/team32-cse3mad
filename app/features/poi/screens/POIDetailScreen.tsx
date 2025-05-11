@@ -37,6 +37,7 @@ export default function POIDetailScreen() {
     }
   };
 
+  
 
   return (
     <ScrollView style={styles.container}>

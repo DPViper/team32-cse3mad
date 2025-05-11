@@ -1,7 +1,6 @@
 // services/submitRating.ts
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
-
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebaseConfig";
 
 type SubmitRatingProps = {
   poiId: string;
@@ -9,15 +8,14 @@ type SubmitRatingProps = {
   user: any;
 };
 
-export async function SubmitRating({poiId, rating, user} : SubmitRatingProps) {
-
+export async function SubmitRating({ poiId, rating, user }: SubmitRatingProps) {
   try {
     await addDoc(collection(db, `pois/${poiId}/ratings`), {
       userId: user.uid,
       rating,
       createdAt: serverTimestamp(),
     });
-  } catch (error : any) {
-    console.error('Error adding rating: ', error);
+  } catch (error: any) {
+    console.error("Error adding rating: ", error);
   }
-};
+}

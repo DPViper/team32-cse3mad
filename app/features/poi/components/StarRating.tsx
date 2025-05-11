@@ -11,11 +11,10 @@ type StarRatingProps = {
   onChange: (value: number) => void;
 };
 
-
 export default function StarRating({
   rating,
   onChange,
-  itemId,
+  poiId,
   userId,
 }: StarRatingProps) {
   const theme = useTheme();
@@ -26,8 +25,8 @@ export default function StarRating({
     onChange(star);
 
     // only submit if IDs are provided
-    if (itemId && userId) {
-      submitRating(itemId, userId, star, "");
+    if (poiId && userId) {
+      submitRating(poiId, userId, star, "");
     }
   };
 

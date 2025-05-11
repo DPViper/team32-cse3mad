@@ -66,7 +66,7 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
                 Rating: {poi.averageRating?.toFixed(1) || "N/A"}
               </Text>
               <StarRating
-                itemId={poi.id}
+                poiId={poi.id}
                 userId={user?.uid || ""}
                 rating={poi.averageRating || 0}
                 onChange={() => {}}
@@ -112,7 +112,7 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
                 </View>
 
                 <StarRating
-                  itemId={poi.id}
+                  poiId={poi.id}
                   userId={user?.uid || ""}
                   rating={comment.rating}
                   onChange={() => {}}

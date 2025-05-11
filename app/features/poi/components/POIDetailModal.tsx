@@ -1,11 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Modal, View, Text, Image, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { POI } from "../type";
 import { getPOIDetails, getPOIComments } from "../services/poiService";
 import StarRating from "./StarRating";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from "date-fns";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import SafeScreen from "@/components/SafeScreen";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   poiId: string;
@@ -14,6 +26,7 @@ interface Props {
 
 export const POIDetailModal = ({ poiId, onClose }: Props) => {
   const theme = useTheme();
+  const styles = createThemedStyles(theme);
   const [poi, setPOI] = useState<POI | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const router = useRouter();
@@ -33,74 +46,146 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={styles.title}>{poi.title}</Text>
-        {poi.image && (
-          <Image source={{ uri: poi.image }} style={styles.image} />
-        )}
-        <Text style={{ color: theme.textSecondary }}>{poi.description}</Text>
-        <Text style={{ marginTop: 8 }}>Address: {poi.address || "Unknown"}</Text>
-        <Text style={{ fontSize: 18, marginTop: 10 }}>
-          Rating: {poi.averageRating?.toFixed(1) || "N/A"}
-        </Text>
-        <StarRating
-          poiId={poi.id}
-          userId={user?.uid || ""}
-          rating={poi.averageRating || 0}
-          onChange={() => {}}
-        />
 
-        <TouchableOpacity
-          style={[styles.reviewButton, { backgroundColor: theme.primary }]}
-          onPress={() => router.push({
-            pathname: "/features/poi/screens/ReviewScreen",
-            params: {
-              id: poi.id,
-              title: poi.title,
-              image: poi.image,
-            }
-          })}
-        >
-          <Text style={{ color: "#fff", textAlign: "center" }}>Post a Review</Text>
-        </TouchableOpacity>
+      <SafeAreaProvider>
+        <SafeScreen>
+          <ScrollView style={styles.container}>
+            <Text style={styles.title}>{poi.title}</Text>
+            {poi.image && (
+              <Image source={{ uri: poi.image }} style={styles.image} />
+            )}
+            <Text style={styles.address}>{poi.description}</Text>
 
-        <Text style={styles.reviewHeader}>Reviews</Text>
-        {comments.map((comment, idx) => (
-          <View key={idx} style={styles.comment}>
-            <Text style={styles.commentAuthor}>{comment.userName}</Text>
-            <StarRating
-              poiId={poi.id}
-              userId={user?.uid || ""}
-              rating={comment.rating}
-              onChange={() => {}}
-            />
-            <Text>{comment.text}</Text>
-          </View>
-        ))}
-      </ScrollView>
+            {/* rating */}
+            <View
+              style={{
+                flexDirection: "row",
+              }}
+            >
+              <Text style={styles.rating}>
+                Rating: {poi.averageRating?.toFixed(1) || "N/A"}
+              </Text>
+              <StarRating
+                itemId={poi.id}
+                userId={user?.uid || ""}
+                rating={poi.averageRating || 0}
+                onChange={() => {}}
+              />
+            </View>
 
-      <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-        <Text>Close</Text>
-      </TouchableOpacity>
+
+            <Button
+              onPress={() =>
+                router.push({
+                  pathname: "/features/poi/screens/ReviewScreen",
+                  params: {
+                    id: poi.id,
+                    title: poi.title,
+                    image: poi.image,
+                  },
+                })
+              }
+            >
+              Post a Review
+            </Button>
+
+
+            {/* review section */}
+            <Text style={styles.reviewHeader}>Reviews</Text>
+            {comments.map((comment, idx) => (
+              <View key={idx} style={styles.comment}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={styles.commentAuthor}>
+                    {comment.displayName}
+                  </Text>
+                  <Text style={styles.timeAgo}>
+                    {formatDistanceToNow(comment.createdAt.toDate(), {
+                      addSuffix: true,
+                      includeSeconds: true,
+                    }).replace("about", "")}
+                  </Text>
+                </View>
+
+                <StarRating
+                  itemId={poi.id}
+                  userId={user?.uid || ""}
+                  rating={comment.rating}
+                  onChange={() => {}}
+                />
+
+                <Text style={styles.commentContent}>{comment.comment}</Text>
+              </View>
+            ))}
+          </ScrollView>
+
+          <Button variant="outline" onPress={onClose}>
+            Close
+          </Button>
+        </SafeScreen>
+      </SafeAreaProvider>
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { padding: 16 },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },
-  image: { height: 200, borderRadius: 8, marginBottom: 12 },
-  reviewButton: {
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 6,
-  },
-  reviewHeader: { marginTop: 20, fontWeight: "600", fontSize: 16 },
-  comment: { marginTop: 10 },
-  commentAuthor: { fontWeight: "500" },
-  closeButton: {
-    padding: 12,
-    backgroundColor: "#eee",
-    alignItems: "center",
-  },
-});
+function createThemedStyles(theme: any) {
+  return StyleSheet.create({
+    container: { paddingHorizontal: 16, backgroundColor: theme.background },
+    title: {
+      fontSize: 22,
+      marginBottom: 8,
+      alignSelf: "center",
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSansBold",
+    },
+    image: { height: 200, borderRadius: 20, marginBottom: 12 },
+    address: {
+      color: theme.secondary,
+      fontFamily: "PlusJakartaSans",
+    },
+    rating: {
+      fontSize: 18,
+      marginTop: 10,
+      color: theme.secondary,
+      marginRight: 5,
+    },
+    reviewHeader: {
+      marginTop: 20,
+      marginBottom: 10,
+      fontWeight: "600",
+      fontSize: 25,
+      fontFamily: "PlusJakartaSansSemiBold",
+    },
+    comment: {
+      marginBottom: 10,
+      paddingTop: 10,
+      borderTopWidth: 0.5,
+      borderBottomColor: theme.border,
+    },
+    commentAuthor: {
+      fontWeight: "500",
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSans",
+      marginRight: 5,
+    },
+    timeAgo: {
+      color: theme.textSecondary,
+      // paddingTop: 2,
+      fontFamily: "PlusJakartaSans",
+    },
+    commentContent: {
+      fontSize: 16,
+      color: theme.textDark,
+      fontFamily: "PlusJakartaSans",
+    },
+    closeButton: {
+      padding: 12,
+      backgroundColor: "#eee",
+      alignItems: "center",
+    },
+  });
+}

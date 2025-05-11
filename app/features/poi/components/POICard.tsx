@@ -1,8 +1,11 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { POI } from "../type";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebaseConfig";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   poi: POI;
@@ -20,8 +23,32 @@ export const POICard = ({
   onClose,
 }: Props) => {
   const theme = useTheme();
+  const { user } = useAuth();
   const styles = createThemedStyles(theme);
   console.log(poi);
+
+  const handleAddToFavorites = async () => {
+    if (!user) {
+      Alert.alert("You must be logged in to add favorites.");
+      return;
+    }
+
+    try {
+      await setDoc(doc(db, `users/${user.uid}/favorites/${poi.id}`), {
+        title: poi.title,
+        description: poi.description ?? "",
+        image: poi.image ?? null,
+        averageRating: poi.averageRating ?? null,
+        createdAt: new Date(),
+      });
+
+      Alert.alert("Added to favorites!");
+    } catch (error) {
+      console.error("Error adding favorite:", error);
+      Alert.alert("Failed to add favorite.");
+    }
+  };
+
   return (
     <View style={styles.card}>
       {/* Image  */}
@@ -60,10 +87,7 @@ export const POICard = ({
             <Button style={styles.button} onPress={onViewDetails}>
               View details
             </Button>
-            <Button
-              style={styles.button}
-              onPress={() => console.log("Add fav")}
-            >
+            <Button style={styles.button} onPress={handleAddToFavorites}>
               Add to favorites
             </Button>
           </>

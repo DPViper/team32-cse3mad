@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  Alert
 } from "react-native";
 import { auth } from "@/lib/firebaseConfig";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ import { updateProfile } from "firebase/auth";
 import Toast from "react-native-toast-message";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function profile() {
   const theme = useTheme();
@@ -27,6 +29,26 @@ export default function profile() {
   const { user } = useAuth();
   const router = useRouter();
   const avatarUrl = user?.photoURL ?? "https://api.dicebear.com/7.x/adventurer/png?seed=default";
+  const [favorites, setFavorites] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!user) return;
+      try {
+        const snap = await getDocs(collection(db, `users/${user.uid}/favorites`));
+        const items = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setFavorites(items);
+      } catch (err) {
+        console.error("Failed to load favorites:", err);
+        Alert.alert("Error loading favorites");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFavorites();
+  }, [user]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -110,27 +132,37 @@ export default function profile() {
         <Text style={styles.buttonText}>Edit Profile</Text>
       </TouchableOpacity>
 
-      <FlatList
-        data={favoritePlaces}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => console.log("Navigate to detail:", item.id)}
-            style={styles.listItem}
-          >
-            {/* Place Image */}
-            <Image
-              source={item.image}
-              style={styles.placeImage}
-              resizeMode="cover"
-            />
-            {/* Place Name and Rating */}
-            <View style={styles.placeDetails}>
-              <Text style={styles.placeName}>{item.name}</Text>
-              <Text style={styles.placeRating}>{item.rating}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+      <Text style={[styles.name, { marginTop: 16, marginBottom: 4 }]}>
+        Favorite Places
+      </Text>
+
+      {favorites.length === 0 && !loading ? (
+        <Text style={styles.memberSince}>No favorites yet</Text>
+      ) : (
+        <FlatList
+          data={favorites}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => console.log("Navigate to detail:", item.id)}
+              style={styles.listItem}
+            >
+              <Image
+                source={{ uri: item.image ?? undefined }}
+                style={styles.placeImage}
+                resizeMode="cover"
+              />
+              <View style={styles.placeDetails}>
+                <Text style={styles.placeName}>{item.title}</Text>
+                {item.averageRating && (
+                  <Text style={styles.placeRating}>{item.averageRating}</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
+      )}
     </View>
   );
 }

@@ -47,6 +47,12 @@ export default function SendFriendRequestScreen() {
         return;
       }
 
+      console.log("auth uid:", user?.uid);
+      console.log("sending payload:", {
+        from: user?.uid,
+        to: targetUser.id
+      });
+
       // Create friend request
       await addDoc(collection(db, "friendRequests"), {
         from: user.uid,

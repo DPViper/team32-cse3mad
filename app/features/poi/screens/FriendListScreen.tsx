@@ -83,6 +83,13 @@ export default function FriendsListScreen() {
         />
       </View>
 
+      <TouchableOpacity
+        onPress={() => router.push("/features/poi/screens/FriendRequestsScreen")}
+        style={styles.requestsButton}
+      >
+        <Text style={styles.requestsButtonText}>View Friend Requests</Text>
+      </TouchableOpacity>
+
       {/* Friends list */}
       <FlatList
         data={filteredFriends}
@@ -162,5 +169,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  requestsButton: {
+    backgroundColor: "#F58A07",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 16,
+    alignSelf: "center",
+  },
+
+  requestsButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });

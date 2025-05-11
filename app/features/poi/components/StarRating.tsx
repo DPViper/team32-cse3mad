@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { submitRating } from "../services/submitRatings";
+import { SubmitRating } from "../services/submitRatings";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -26,7 +26,7 @@ export default function StarRating({
 
     // only submit if IDs are provided
     if (poiId && userId) {
-      submitRating(poiId, userId, star, "");
+      SubmitRating({ poiId, rating: star, user: { uid: userId } });
     }
   };
 

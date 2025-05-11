@@ -6,6 +6,7 @@ import { SubmitRating } from "@/app/features/poi/services/submitRatings";
 import { useAuth } from "@/hooks/useAuth";
 import { SubmitComments } from "@/app/features/poi/services/submitComments";
 
+
 export default function ReviewScreen() {
   const { id, image } = useLocalSearchParams();
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function ReviewScreen() {
         comment: text,
         user,
       });
+
       Alert.alert("Thank you!", "Your review has been submitted.");
       router.back();
     } catch (error) {
@@ -52,6 +54,7 @@ export default function ReviewScreen() {
         onChange={setRating} 
         poiId={id.toString()}
       />
+
 
       <TextInput
         placeholder="Write your review..."
@@ -89,4 +92,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   buttonText: { textAlign: "center", color: "#fff", fontWeight: "600" },
+
 });
+

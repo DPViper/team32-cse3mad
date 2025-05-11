@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const [displayName, setDisplayName] = useState("");
   const {
     control,
     handleSubmit,
@@ -59,20 +60,31 @@ export default function RegisterScreen() {
       return;
     }
 
+    const randomSeed = Math.random().toString(36).substring(2, 10);
+    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/png?seed=${randomSeed}`;
+
     try {
-      await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
 
-      const uid = auth.currentUser?.uid;
+      const user = userCredential.user;
 
-      await setDoc(doc(db, "users", uid!), {
-        userID: uid,
-        displayName: email.split("@")[0],
+      // Set display name in Firebase Auth
+      await updateProfile(user, { displayName: data.displayName, photoURL: avatarUrl });
+
+      // ✅ Save user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        userID: user.uid,
+        displayName: data.displayName,
+        email: data.email,
+        avatar: avatarUrl,
         phone: "",
-        activeLevel: "New",
+        activeLevel: "Explorer",
+        createdAt: new Date(),
       });
-      if (!uid) return;
 
-      await updateDoc(doc(db, "users", uid), {
+      if (!user.uid) return;
+
+      await updateDoc(doc(db, "users", user.uid), {
         phone: "+123456789",
         activeLevel: "Explorer",
       });
@@ -97,6 +109,20 @@ export default function RegisterScreen() {
             resizeMode="contain"
           />
         </View>
+
+        {/* Display Name */}
+        <Controller
+          control={control}
+          name="displayName"
+          rules={{ required: true }}
+          render={({ field: { onChange, value } }) => (
+            <Input placeholder="Display Name" value={value} onChangeText={onChange} />
+          )}
+        />
+        {errors.displayName && (
+          <Text style={{ color: "red" }}>Display name is required</Text>
+        )}
+
 
         {/* email and password */}
         <Controller

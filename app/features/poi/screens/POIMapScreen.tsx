@@ -14,6 +14,7 @@ import { POIDetailModal } from "../components/POIDetailModal";
 import Constants from "expo-constants";
 import 'react-native-get-random-values';
 
+
 export default function POIMapScreen() {
   const { user } = useAuth();
   const theme = useTheme();
@@ -105,12 +106,15 @@ export default function POIMapScreen() {
       setSelectedPOI(updatedPOI);
 
       Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
+
     } catch {
       Alert.alert("Error", "Failed to share POI.");
     }
   };
 
+
   const isExistingPOI = selectedPOI && pois.some((p) => p.id === selectedPOI.id);
+
 
   return (
     <View style={styles.container}>
@@ -156,18 +160,23 @@ export default function POIMapScreen() {
       </MapView>
 
       {selectedPOI && (
-        <View style={{ position: "absolute", bottom: 10, width: "100%", paddingHorizontal: 10 }}>
+
+        <View style={{position: "absolute", bottom: 10, width: "100%", paddingHorizontal: 10, }}>
           <POICard
             poi={selectedPOI}
             isInFirestore={!!isExistingPOI}
             onViewDetails={() => setShowDetail(true)}
             onAdd={() => handleSavePOI()}
+            onClose={() => setSelectedPOI(null)}
           />
         </View>
       )}
 
       {showDetail && selectedPOI && (
-        <POIDetailModal poiId={selectedPOI.id} onClose={() => setShowDetail(false)} />
+        <POIDetailModal
+          poiId={selectedPOI.id}
+          onClose={() => setShowDetail(false)}
+        />
       )}
     </View>
   );

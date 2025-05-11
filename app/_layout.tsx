@@ -11,8 +11,9 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Toast from "react-native-toast-message";
-import 'react-native-get-random-values';
-
+import "react-native-get-random-values";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import SafeScreen from "@/components/SafeScreen";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -36,16 +37,20 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="settings" options={{ headerShown: true }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <Toast />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <SafeScreen>
+        <AuthProvider>
+          <ThemeProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="settings" options={{ headerShown: true }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <Toast />
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </AuthProvider>
+      </SafeScreen>
+    </SafeAreaProvider>
   );
 }

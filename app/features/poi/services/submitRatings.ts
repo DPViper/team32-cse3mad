@@ -2,6 +2,7 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 
+
 type SubmitRatingProps = {
   poiId: string;
   rating: number;
@@ -9,10 +10,12 @@ type SubmitRatingProps = {
 };
 
 export async function SubmitRating({poiId, rating, user} : SubmitRatingProps) {
+
   try {
     await addDoc(collection(db, `pois/${poiId}/ratings`), {
       userId: user.uid,
       rating,
+      comment,
       createdAt: serverTimestamp(),
     });
   } catch (error : any) {

@@ -5,11 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 
 type StarRatingProps = {
+  poiId: string;
   rating: number;
-  itemId?: string;
   userId?: string;
   onChange: (value: number) => void;
 };
+
 
 export default function StarRating({
   rating,

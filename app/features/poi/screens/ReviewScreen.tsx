@@ -10,10 +10,13 @@ import {
 } from "react-native";
 import { useState } from "react";
 import StarRating from "@/app/features/poi/components/StarRating";
-import { submitRating } from "@/app/features/poi/services/submitRatings";
+import { SubmitRating } from "@/app/features/poi/services/submitRatings";
+import { SubmitComments } from "@/app/features/poi/services/submitComments";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+
+
 
 export default function ReviewScreen() {
   const theme = useTheme();
@@ -32,7 +35,18 @@ export default function ReviewScreen() {
     }
 
     try {
-      await submitRating(id.toString(), user.uid, rating, text);
+      await SubmitRating({
+        poiId: id.toString(), 
+        rating,
+        user,
+      });
+      await SubmitComments({
+        poiId: id.toString(),
+        rating,
+        comment: text,
+        user,
+      });
+
       Alert.alert("Thank you!", "Your review has been submitted.");
       router.back();
     } catch (error) {
@@ -48,7 +62,12 @@ export default function ReviewScreen() {
         <Image source={{ uri: image as string }} style={styles.image} />
       )}
 
-      <StarRating rating={rating} onChange={setRating} />
+      <StarRating 
+        rating={rating} 
+        onChange={setRating} 
+        poiId={id.toString()}
+      />
+
 
       <TextInput
         placeholder="Write your review here"
@@ -62,6 +81,8 @@ export default function ReviewScreen() {
         Submit Review
       </Button>
     </View>
+
+      
   );
 }
 
@@ -96,3 +117,4 @@ function createThemedStyles(theme: any) {
     buttonText: { textAlign: "center", color: "#fff", fontWeight: "600" },
   });
 }
+

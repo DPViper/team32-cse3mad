@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Dimensions, Alert } from "react-native";
+import { View, StyleSheet, Dimensions, Alert, ScrollView, Text } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { useAuth } from "@/hooks/useAuth";

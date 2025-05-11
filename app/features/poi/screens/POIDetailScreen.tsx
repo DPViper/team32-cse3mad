@@ -1,10 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import { fetchComments, Comment } from "@/app/features/poi/services/fetchComments";
+import { useLocalSearchParams } from "expo-router";
 
 export default function POIDetailScreen() {
   const route = useRoute();
   const { poi } = route.params as any;
+
+  // State for comments
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch comments for the selected POI 
+  useEffect(() => {
+    if (poi?.id) {
+      console.log("Fetching comments for POI:", poi.id);
+      setIsLoading(true);
+      const unsubscribe = fetchComments(poi.id, (commentsList) => {
+        setComments(commentsList);
+        setIsLoading(false);
+      });
+      return () => unsubscribe();
+    }
+  }, [poi?.id]);;
+
+  // Format date if it exists
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return "";
+    
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString();
+    } catch (e) {
+      return "";
+    }
+  };
+
 
   return (
     <ScrollView style={styles.container}>
@@ -17,12 +49,42 @@ export default function POIDetailScreen() {
         <Text style={styles.buttonText}>Post a Review</Text>
       </TouchableOpacity>
 
+      
+
+      {/* Display comments */}
       <Text style={styles.subTitle}>Reviews</Text>
-      <View style={styles.reviewCard}>
-        <Text style={styles.reviewName}>Alex</Text>
-        <Text style={styles.reviewDate}>2 days ago</Text>
-        <Text style={styles.reviewText}>The food and service were both excellent. Will definitely come back.</Text>
-      </View>
+      <View style={styles.commentsContainer}>
+      {isLoading ? (
+          <Text style={styles.loadingText}>Loading comments...</Text>
+        ) : comments.length > 0 ? (
+          comments.map(item => (
+            <View key={item.id} style={styles.commentItem}>
+              <View style={styles.commentHeader}>
+                <Text style={styles.commentName}>{item.displayName}</Text>
+                {item.createdAt && (
+                  <Text style={styles.commentDate}>{formatDate(item.createdAt)}</Text>
+                )}
+              </View>
+              
+              {/* Display stars based on the user's rating */}
+              <View style={styles.starContainer}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Text 
+                    key={star} 
+                    style={[styles.star, star <= item.rating && styles.filledStar]}
+                  >
+                    ★
+                  </Text>
+                ))}
+              </View>
+
+              <Text style={styles.commentText}>{item.comment}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.commentText, {fontStyle: 'italic'}]}>No comments yet</Text>
+        )}
+      </View> 
     </ScrollView>
   );
 }
@@ -65,21 +127,54 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     marginTop: 16,
+    marginBottom: 8,
   },
-  reviewCard: {
-    backgroundColor: "#f9f9f9",
-    padding: 10,
-    borderRadius: 8,
+  loadingText: {
+    fontStyle: 'italic',
+    color: '#666',
+    textAlign: 'center',
+    padding: 20,
+  },
+
+  commentsContainer: {
     marginTop: 10,
+    marginBottom: 20,
   },
-  reviewName: {
+  commentItem: {
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: "orange",
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  commentName: {
     fontWeight: "bold",
+    color: '#000',
   },
-  reviewDate: {
+  commentDate: {
     fontSize: 12,
-    color: "#999",
+    color: '#999',
   },
-  reviewText: {
-    marginTop: 4,
+  commentText: {
+    color: '#000',
+    marginTop: 6,
+  },
+  starContainer: {
+    flexDirection: 'row',
+    marginVertical: 4,
+  },
+  star: {
+    fontSize: 18,
+    color: "#CCC",
+    marginRight: 2,
+  },
+  filledStar: {
+    color: "#FFD700",
   },
 });

@@ -15,6 +15,9 @@ type ProfileData = {
   displayName: string;
   phone: string;
   activeLevel: string;
+  email: string;
+  avatar: string;
+  createdAt: any;
 };
 
 type AuthContextType = {
@@ -31,20 +34,19 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: () => {},
 });
 
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (uid: string) => {
-    const docRef = doc(db, 'users', uid);
+    const docRef = doc(db, "users", uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const data = docSnap.data() as ProfileData;
       setProfile(data);
 
-      await AsyncStorage.setItem('userProfile', JSON.stringify(data));
+      await AsyncStorage.setItem("userProfile", JSON.stringify(data));
     }
   };
 
@@ -56,22 +58,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
-  
+
       if (firebaseUser?.uid) {
         try {
-          const cached = await AsyncStorage.getItem('userProfile');
+          const cached = await AsyncStorage.getItem("userProfile");
           if (cached) setProfile(JSON.parse(cached));
         } catch (err) {
-          console.log('No local profile found');
+          console.log("No local profile found");
         }
-  
+
         await fetchProfile(firebaseUser.uid); // Then sync from Firestore
       } else {
         setProfile(null);
-        await AsyncStorage.removeItem('userProfile');
+        await AsyncStorage.removeItem("userProfile");
       }
     });
-  
+
     return () => unsubscribe();
   }, []);
 

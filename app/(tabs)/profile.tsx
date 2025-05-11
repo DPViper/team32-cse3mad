@@ -6,12 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Alert
+  Alert,
 } from "react-native";
+
 import { auth } from "@/lib/firebaseConfig";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebaseConfig";
 import { updateDoc, doc, getDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
@@ -19,6 +20,7 @@ import Toast from "react-native-toast-message";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { collection, getDocs } from "firebase/firestore";
+import { useFocusEffect } from "expo-router";
 
 export default function profile() {
   const theme = useTheme();
@@ -28,28 +30,31 @@ export default function profile() {
   const [phone, setPhone] = useState(profile?.phone || "");
   const { user } = useAuth();
   const router = useRouter();
-  const avatarUrl = user?.photoURL ?? "https://api.dicebear.com/7.x/adventurer/png?seed=default";
+  const avatarUrl =
+    user?.photoURL ??
+    "https://api.dicebear.com/7.x/adventurer/png?seed=default";
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchFavorites = async () => {
+    if (!user) return;
+    try {
+      const snap = await getDocs(collection(db, `users/${user.uid}/favorites`));
+      const items = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setFavorites(items);
+    } catch (err) {
+      console.error("Failed to load favorites:", err);
+      Alert.alert("Error loading favorites");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!user) return;
-      try {
-        const snap = await getDocs(collection(db, `users/${user.uid}/favorites`));
-        const items = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setFavorites(items);
-      } catch (err) {
-        console.error("Failed to load favorites:", err);
-        Alert.alert("Error loading favorites");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFavorites();
-  }, [user]);
-
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavorites(); // Refresh favorites when the screen gains focus
+    }, [user])
+  );
+  console.log("Favorites:", favorites);
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
@@ -120,15 +125,20 @@ export default function profile() {
       {/* Avatar and information */}
       <View style={styles.profile}>
         {/* Avatar */}
-      <View style={styles.avatarContainer}>
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-      </View>
-        <Text style={styles.name}>{auth.currentUser?.displayName ?? "Your Name"}</Text>
+        <View style={styles.avatarContainer}>
+          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        </View>
+        <Text style={styles.name}>
+          {auth.currentUser?.displayName ?? "Your Name"}
+        </Text>
         <Text style={styles.memberSince}>Joined Apr 2025</Text>
       </View>
 
       {/* Settings Button */}
-      <TouchableOpacity onPress={() => router.push("/settings")} style={styles.button}>
+      <TouchableOpacity
+        onPress={() => router.push("/settings")}
+        style={styles.button}
+      >
         <Text style={styles.buttonText}>Edit Profile</Text>
       </TouchableOpacity>
 
@@ -170,13 +180,13 @@ export default function profile() {
 function createThemedStyles(theme: any) {
   return StyleSheet.create({
     avatarContainer: {
-      marginTop: 60,
+      marginTop: 10,
       marginBottom: 20,
       width: 120,
       height: 120,
       borderRadius: 60,
       overflow: "hidden",
-      backgroundColor: "#ccc",
+      backgroundColor: theme.button,
     },
     button: {
       backgroundColor: "#ffa200",
@@ -191,7 +201,7 @@ function createThemedStyles(theme: any) {
     },
     container: {
       flex: 1,
-      backgroundColor: theme.primary,
+      backgroundColor: theme.background,
       padding: 24,
       gap: 20,
     },
@@ -200,8 +210,8 @@ function createThemedStyles(theme: any) {
       marginBottom: 20,
     },
     avatar: {
-      width: 100,
-      height: 100,
+      width: 120,
+      height: 120,
       borderRadius: 50,
       marginBottom: 10,
     },
@@ -248,25 +258,3 @@ function createThemedStyles(theme: any) {
     },
   });
 }
-
-// Sample data for favorite places
-const favoritePlaces = [
-  {
-    id: "1",
-    name: "Farmer’s Daughters",
-    rating: 4.7,
-    image: require("../../FakeAssets/img/farmerdaughter.jpeg"),
-  },
-  {
-    id: "2",
-    name: "Library at Profilee Dock",
-    rating: 4.8,
-    image: require("../../FakeAssets/img/docklandlib.jpeg"),
-  },
-  {
-    id: "3",
-    name: "Point Ormond Lookout",
-    rating: 4.6,
-    image: require("../../FakeAssets/img/pointormond.jpg"),
-  },
-];

@@ -6,7 +6,7 @@ import {
   TextInput,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebaseConfig";
@@ -24,6 +24,9 @@ export default function settings() {
   const [name, setName] = useState(profile?.displayName || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const router = useRouter();
+
+  console.log(profile);
+
   const handleSave = async () => {
     const uid = auth.currentUser?.uid;
     if (!auth.currentUser) return;
@@ -94,16 +97,16 @@ export default function settings() {
 
         <View style={styles.row}>
           <Text style={styles.rowText}>Username</Text>
-          <Text style={styles.rowText}>oldnxeldawell</Text>
+          <Text style={styles.rowText}>{profile?.displayName || "N/A"}</Text>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.rowText}>Mobile Number</Text>
-          <Text style={styles.rowText}>0433978126</Text>
+          <Text style={styles.rowText}>{profile?.phone || "N/A"}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.rowText}>Email</Text>
-          <Text style={styles.rowText}>noel.anhduy@gmail.com</Text>
+          <Text style={styles.rowText}>{profile?.email || "N/A"}</Text>
         </View>
 
         {/* Log Out Button */}

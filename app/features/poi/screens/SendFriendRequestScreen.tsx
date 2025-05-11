@@ -1,6 +1,21 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
-import { collection, query, where, getDocs, addDoc, Timestamp } from "firebase/firestore";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -14,7 +29,10 @@ export default function SendFriendRequestScreen() {
   const handleSendRequest = async () => {
     if (!user) return;
     if (email.trim() === "" || email === user.email) {
-      Alert.alert("Invalid email", "Please enter a valid email different from your own.");
+      Alert.alert(
+        "Invalid email",
+        "Please enter a valid email different from your own."
+      );
       return;
     }
 
@@ -50,7 +68,7 @@ export default function SendFriendRequestScreen() {
       console.log("auth uid:", user?.uid);
       console.log("sending payload:", {
         from: user?.uid,
-        to: targetUser.id
+        to: targetUser.id,
       });
 
       // Create friend request
@@ -84,7 +102,11 @@ export default function SendFriendRequestScreen() {
         autoCapitalize="none"
       />
 
-      <TouchableOpacity onPress={handleSendRequest} style={styles.button} disabled={sending}>
+      <TouchableOpacity
+        onPress={handleSendRequest}
+        style={styles.button}
+        disabled={sending}
+      >
         {sending ? (
           <ActivityIndicator color="#fff" />
         ) : (
@@ -96,8 +118,18 @@ export default function SendFriendRequestScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff", justifyContent: "center" },
-  title: { fontSize: 22, fontWeight: "600", marginBottom: 20, textAlign: "center" },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",

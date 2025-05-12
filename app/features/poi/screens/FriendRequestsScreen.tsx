@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -18,6 +19,7 @@ import {
   updateDoc,
   setDoc,
   getDoc,
+  addDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 
@@ -34,6 +36,7 @@ export default function FriendRequestsScreen() {
     setUserReady(true);
 
     const fetchRequests = async () => {
+      if (!user) return;
       try {
         const q = query(
           collection(db, "friendRequests"),
@@ -41,9 +44,22 @@ export default function FriendRequestsScreen() {
           where("status", "==", "pending")
         );
         const snapshot = await getDocs(q);
-        setRequests(
-          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        const enriched = await Promise.all(
+          snapshot.docs.map(async (docSnap) => {
+            const data = docSnap.data();
+            const senderDoc = await getDoc(doc(db, "users", data.from));
+            const sender = senderDoc.exists() ? senderDoc.data() : null;
+
+            return {
+              id: docSnap.id,
+              ...data,
+              userName: sender?.displayName || data.from,
+              userAvatar: sender?.avatar || "",
+            };
+          })
         );
+
+        setRequests(enriched);
       } catch (err) {
         console.error("Failed to load friend requests", err);
       } finally {
@@ -57,6 +73,7 @@ export default function FriendRequestsScreen() {
   if (!userReady) return null;
 
   const handleAccept = async (request: any) => {
+    if (!user) return;
     try {
       // Update status to accepted
       const ref = doc(db, "friendRequests", request.id);
@@ -67,25 +84,27 @@ export default function FriendRequestsScreen() {
       const sender = senderDoc.data();
 
       // Add each other to friends lists
-      if (!user?.uid) throw new Error("User UID is undefined");
-      await setDoc(doc(db, "friends", user.uid, "list", request.from), {
-        uid: request.from,
-        displayName: sender?.displayName || "Friend",
-        avatar: sender?.avatar || "",
-        since: new Date(),
-      });
-
-      await setDoc(doc(db, "friends", request.from, "list", user?.uid), {
-        uid: user?.uid,
-        displayName: user?.displayName || "You",
-        avatar: user?.photoURL || "",
-        since: new Date(),
-      });
+      await Promise.all([
+        addDoc(collection(db, "friends", user.uid, "list"), {
+          uid: request.from,
+          displayName: sender?.displayName || "Friend",
+          avatar: sender?.avatar || "",
+          since: new Date(),
+        }),
+        addDoc(collection(db, "friends", request.from, "list"), {
+          uid: user.uid,
+          displayName: user.displayName || "You",
+          avatar: user.photoURL || "",
+          since: new Date(),
+        }),
+      ]);
 
       // Remove from visible list
       setRequests((prev) => prev.filter((r) => r.id !== request.id));
+      Alert.alert("Friend request accepted!");
     } catch (err) {
       console.error("Failed to accept request", err);
+      Alert.alert("Failed to accept request.");
     }
   };
 
@@ -102,7 +121,7 @@ export default function FriendRequestsScreen() {
 
   const renderRequest = ({ item }: { item: any }) => (
     <View style={styles.requestItem}>
-      <Text style={styles.name}>{item.from}</Text>
+      <Text style={styles.name}>{item.userName}</Text>
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.button, styles.accept]}

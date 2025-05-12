@@ -80,6 +80,7 @@ export default function SendFriendRequestScreen() {
         to,
         status: "pending",
         createdAt: Timestamp.now(),
+        userName: user.displayName,
       });
 
       Alert.alert("Friend request sent!", `To ${targetData.displayName}`);

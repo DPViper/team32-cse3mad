@@ -99,10 +99,13 @@ export default function FriendsListScreen() {
 
       {/* Friends list */}
       <FlatList
-        data={filteredFriends}
-        renderItem={renderFriend}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 10 }}
+        data={friends}
+        renderItem={({ item }) => (
+          <View style={styles.friendItem}>
+            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <Text style={styles.friendName}>{item.displayName}</Text>
+          </View>
+        )}
       />
 
       {/* Invite friends button */}
@@ -143,6 +146,7 @@ function createThemedStyles(theme: any) {
     friendItem: {
       flexDirection: "row",
       alignItems: "center",
+
       marginBottom: 10,
       paddingTop: 10,
       borderTopWidth: 0.5,

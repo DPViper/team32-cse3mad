@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { POI } from "../type";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
@@ -25,7 +32,6 @@ export const POICard = ({
   const theme = useTheme();
   const { user } = useAuth();
   const styles = createThemedStyles(theme);
-  console.log(poi);
 
   const handleAddToFavorites = async () => {
     if (!user) {

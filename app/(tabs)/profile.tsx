@@ -21,6 +21,10 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { collection, getDocs } from "firebase/firestore";
 import { useFocusEffect } from "expo-router";
+import { fetchPlaceDetails } from "@/lib/places";
+import { POI } from "../features/poi/type";
+import { POICard } from "../features/poi/components/POICard";
+import { POIDetailModal } from "../features/poi/components/POIDetailModal";
 
 export default function profile() {
   const theme = useTheme();
@@ -28,6 +32,10 @@ export default function profile() {
   const { profile, refreshProfile } = useAuth();
   const [name, setName] = useState(profile?.displayName || "");
   const [phone, setPhone] = useState(profile?.phone || "");
+
+  const [pois, setPOIs] = useState<POI[]>([]);
+  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
   const avatarUrl =
@@ -54,7 +62,6 @@ export default function profile() {
       fetchFavorites(); // Refresh favorites when the screen gains focus
     }, [user])
   );
-  console.log("Favorites:", favorites);
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
@@ -111,6 +118,30 @@ export default function profile() {
     }
   };
 
+  // Handle place selection
+  const handlePlaceSelect = async (data: any) => {
+    try {
+      const poi = await fetchPlaceDetails(data.place_id);
+      console.log("Returned POI:", poi);
+      if (!poi.id || !poi.coordinate?.latitude || !poi.coordinate?.longitude) {
+        Alert.alert("Invalid place data.");
+        return;
+      }
+
+      setSelectedPOI(poi);
+
+      // mapRef.current?.animateToRegion({
+      //   latitude: poi.coordinate.latitude,
+      //   longitude: poi.coordinate.longitude,
+      //   latitudeDelta: 0.01,
+      //   longitudeDelta: 0.01,
+      // });
+    } catch (error) {
+      console.error("Error fetching details:", error);
+      Alert.alert("Failed to fetch place details");
+    }
+  };
+
   const fetchProfile = async () => {
     const docRef = doc(db, "users", auth.currentUser!.uid);
     const docSnap = await getDoc(docRef);
@@ -154,7 +185,10 @@ export default function profile() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              onPress={() => console.log("Navigate to detail:", item.id)}
+              onPress={() => {
+                setSelectedPOI(item);
+                setShowDetail(true);
+              }}
               style={styles.listItem}
             >
               <Image
@@ -171,6 +205,13 @@ export default function profile() {
             </TouchableOpacity>
           )}
           contentContainerStyle={{ paddingBottom: 100 }}
+        />
+      )}
+
+      {showDetail && selectedPOI && (
+        <POIDetailModal
+          poiId={selectedPOI.id}
+          onClose={() => setShowDetail(false)}
         />
       )}
     </View>

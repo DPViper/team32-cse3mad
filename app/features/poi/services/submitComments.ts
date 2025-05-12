@@ -9,9 +9,10 @@ type SubmitCommentsProps = {
   rating: number;
   comment: string;
   user: any;
+  imageUrl: string;
 };
 
-export async function SubmitComments({ poiId,rating, comment, user}: SubmitCommentsProps) {
+export async function SubmitComments({ poiId,rating, comment, user, imageUrl}: SubmitCommentsProps) {
 
     if (!user || !poiId || comment.trim() === "") return;
     try {
@@ -22,6 +23,7 @@ export async function SubmitComments({ poiId,rating, comment, user}: SubmitComme
         displayName: user.displayName || "Anonymous", // Add displayName with fallback
         comment,
         rating,
+        imageUrl: imageUrl || null, 
         createdAt: serverTimestamp(),
         }
       );

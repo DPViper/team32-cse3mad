@@ -118,6 +118,10 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
                   onChange={() => {}}
                 />
 
+                {comment.imageUrl && (
+                  <Image source={{ uri: comment.imageUrl }} style={{ width: 120, height: 120, borderRadius: 8 }} />
+                )}
+
                 <Text style={styles.commentContent}>{comment.comment}</Text>
               </View>
             ))}

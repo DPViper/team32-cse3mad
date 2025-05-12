@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SubmitComments } from "@/app/features/poi/services/submitComments";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { pickImage, uploadImageAsync } from "@/hooks/useStorage";
 
 export default function ReviewScreen() {
   const theme = useTheme();
@@ -27,10 +28,28 @@ export default function ReviewScreen() {
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
 
+  const [imageUri, setImageUri] = useState<string | null>(null);
+
+  const handlePickImage = async () => {
+    const uri = await pickImage();
+    if (uri) setImageUri(uri);
+  };
+
   const handleSubmit = async () => {
     if (!user || !id) {
       Alert.alert("Error", "Missing user or POI ID.");
       return;
+    }
+
+    let uploadedUrl: string | undefined = undefined;
+    try {
+      if (imageUri && user) {
+        uploadedUrl = await uploadImageAsync(imageUri, user.uid);
+      }
+    } catch (err) {
+      console.error("Lỗi upload ảnh:", err);
+      Alert.alert("Lỗi", "Không thể upload ảnh. Vui lòng thử lại.");
+      return; // Không submit tiếp nếu upload lỗi
     }
 
     try {
@@ -44,6 +63,7 @@ export default function ReviewScreen() {
         rating,
         comment: text,
         user,
+        imageUrl: uploadedUrl || "",
       });
 
       Alert.alert("Thank you!", "Your review has been submitted.");
@@ -71,6 +91,8 @@ export default function ReviewScreen() {
         multiline
         style={styles.textbox}
       />
+      <Button onPress={handlePickImage}>Chọn ảnh</Button>
+      {imageUri && <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />}
       <Button style={styles.button} onPress={handleSubmit}>
         Submit Review
       </Button>

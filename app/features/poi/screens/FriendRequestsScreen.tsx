@@ -1,28 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
-import { collection, query, where, getDocs, doc, updateDoc, setDoc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  setDoc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 
 export default function FriendRequestsScreen() {
   const { user } = useAuth();
   const theme = useTheme();
-  
-  if (!user) return null;
-  
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [userReady, setUserReady] = useState(false);
 
   useEffect(() => {
     if (!user) return;
 
+    setUserReady(true);
+
     const fetchRequests = async () => {
       try {
-        const q = query(collection(db, "friendRequests"), where("to", "==", user.uid), where("status", "==", "pending"));
+        const q = query(
+          collection(db, "friendRequests"),
+          where("to", "==", user.uid),
+          where("status", "==", "pending")
+        );
         const snapshot = await getDocs(q);
-        setRequests(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        setRequests(
+          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
       } catch (err) {
         console.error("Failed to load friend requests", err);
       } finally {
@@ -32,6 +53,8 @@ export default function FriendRequestsScreen() {
 
     fetchRequests();
   }, [user]);
+
+  if (!userReady) return null;
 
   const handleAccept = async (request: any) => {
     try {
@@ -44,6 +67,7 @@ export default function FriendRequestsScreen() {
       const sender = senderDoc.data();
 
       // Add each other to friends lists
+      if (!user?.uid) throw new Error("User UID is undefined");
       await setDoc(doc(db, "friends", user.uid, "list", request.from), {
         uid: request.from,
         displayName: sender?.displayName || "Friend",
@@ -51,10 +75,10 @@ export default function FriendRequestsScreen() {
         since: new Date(),
       });
 
-      await setDoc(doc(db, "friends", request.from, "list", user.uid), {
-        uid: user.uid,
-        displayName: user.displayName || "You",
-        avatar: user.photoURL || "",
+      await setDoc(doc(db, "friends", request.from, "list", user?.uid), {
+        uid: user?.uid,
+        displayName: user?.displayName || "You",
+        avatar: user?.photoURL || "",
         since: new Date(),
       });
 
@@ -80,10 +104,16 @@ export default function FriendRequestsScreen() {
     <View style={styles.requestItem}>
       <Text style={styles.name}>{item.from}</Text>
       <View style={styles.buttons}>
-        <TouchableOpacity style={[styles.button, styles.accept]} onPress={() => handleAccept(item)}>
+        <TouchableOpacity
+          style={[styles.button, styles.accept]}
+          onPress={() => handleAccept(item)}
+        >
           <Text style={styles.buttonText}>Accept</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.reject]} onPress={() => handleReject(item)}>
+        <TouchableOpacity
+          style={[styles.button, styles.reject]}
+          onPress={() => handleReject(item)}
+        >
           <Text style={styles.buttonText}>Reject</Text>
         </TouchableOpacity>
       </View>
@@ -104,7 +134,11 @@ export default function FriendRequestsScreen() {
       {requests.length === 0 ? (
         <Text style={styles.empty}>No pending requests</Text>
       ) : (
-        <FlatList data={requests} renderItem={renderRequest} keyExtractor={(item) => item.id} />
+        <FlatList
+          data={requests}
+          renderItem={renderRequest}
+          keyExtractor={(item) => item.id}
+        />
       )}
     </View>
   );
@@ -112,7 +146,12 @@ export default function FriendRequestsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  header: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 16 },
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 16,
+  },
   empty: { textAlign: "center", marginTop: 40, fontSize: 16, color: "#888" },
   requestItem: {
     padding: 16,

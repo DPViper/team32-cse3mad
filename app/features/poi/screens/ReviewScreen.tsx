@@ -126,7 +126,11 @@ export default function ReviewScreen() {
 
 function createThemedStyles(theme: any) {
   return StyleSheet.create({
-    container: { paddingHorizontal: 16, backgroundColor: theme.background },
+    container: {
+      paddingHorizontal: 16,
+      backgroundColor: theme.background,
+      flex: 1,
+    },
     header: {
       fontSize: 22,
       marginBottom: 8,

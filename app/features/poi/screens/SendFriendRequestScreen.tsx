@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
+  Dimensions,
+  Image,
 } from "react-native";
 import {
   collection,
@@ -21,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Ionicons } from "@expo/vector-icons";
+import { StretchOutY } from "react-native-reanimated";
 
 export default function SendFriendRequestScreen() {
   const { user } = useAuth();
@@ -97,6 +99,16 @@ export default function SendFriendRequestScreen() {
     <View style={styles.container}>
       {/* header */}
       <Text style={styles.header}>Send Friend Request</Text>
+
+      {/* illustration */}
+      <View style={styles.topIllustration}>
+        <Image
+          source={require("../../../../assets/images/friend-request-illustration.png")}
+          style={styles.illustrationImage}
+          resizeMode="contain"
+        />
+      </View>
+
       <View style={styles.searchBar}>
         <TextInput
           placeholder="Enter user's email"
@@ -121,6 +133,8 @@ export default function SendFriendRequestScreen() {
 }
 
 function createThemedStyles(theme: any) {
+  const { width } = Dimensions.get("window");
+
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -145,6 +159,8 @@ function createThemedStyles(theme: any) {
       alignItems: "center",
       backgroundColor: theme.textbox,
       borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.secondary,
       marginTop: 20,
       paddingHorizontal: 15,
       paddingVertical: 18,
@@ -157,5 +173,13 @@ function createThemedStyles(theme: any) {
       alignItems: "center",
     },
     buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+    topIllustration: {
+      alignItems: "center",
+      width: "100%",
+    },
+    illustrationImage: {
+      width: width * 0.75,
+      height: width * 0.75,
+    },
   });
 }

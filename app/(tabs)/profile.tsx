@@ -62,7 +62,6 @@ export default function profile() {
       if (!user) return;
       const docRef = doc(db, "users", user.uid);
       const snapshot = await getDoc(docRef);
-      console.log(snapshot.data());
       const createdAt = snapshot.data()?.createdAt;
       if (createdAt) {
         setCreatedAt(createdAt.toDate().toString());

@@ -99,6 +99,7 @@ export default function FriendsListScreen() {
 
       {/* Friends list */}
       <FlatList
+        style={{ padding: 10 }}
         data={friends}
         renderItem={({ item }) => (
           <View style={styles.friendItem}>
@@ -157,7 +158,7 @@ function createThemedStyles(theme: any) {
       height: 48,
       borderRadius: 24,
       marginRight: 12,
-      backgroundColor: "#eee",
+      backgroundColor: theme.textbox,
     },
     friendName: {
       fontSize: 16,

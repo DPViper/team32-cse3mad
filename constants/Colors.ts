@@ -25,6 +25,7 @@ export const COLORS = {
     border: "#F5EDE8",
     white: "#ffffff",
     black: "#000000",
+    grey: "#eee",
   },
   dark: {
     primary: "#FCFAF7",
@@ -41,5 +42,6 @@ export const COLORS = {
     border: "#F5EDE8",
     white: "#ffffff",
     black: "#000000",
+    grey: "#eee",
   },
 };

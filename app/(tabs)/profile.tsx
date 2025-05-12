@@ -146,23 +146,12 @@ function createThemedStyles(theme: any) {
   return StyleSheet.create({
     avatarContainer: {
       marginTop: 10,
-      marginBottom: 20,
+      marginBottom: 10,
       width: 120,
       height: 120,
       borderRadius: 60,
       overflow: "hidden",
       backgroundColor: theme.button,
-    },
-    button: {
-      backgroundColor: "#ffa200",
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 8,
-    },
-    buttonText: {
-      color: "#fff",
-      fontWeight: "600",
-      textAlign: "center",
     },
     container: {
       flex: 1,

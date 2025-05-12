@@ -20,7 +20,7 @@ export const fetchUserDetails = async (
   try {
     const userRef = doc(db, "users", userId);
     const docSnap = await getDoc(userRef);
-
+    console.log("User data:", docSnap.data());
     if (docSnap.exists()) {
       const data = docSnap.data() as UserProfile;
       return data;

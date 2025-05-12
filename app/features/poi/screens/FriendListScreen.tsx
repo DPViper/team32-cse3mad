@@ -26,6 +26,7 @@ type Friend = {
 export default function FriendsListScreen() {
   const { user } = useAuth();
   const theme = useTheme();
+  const styles = createThemedStyles(theme);
   const router = useRouter();
 
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -55,7 +56,11 @@ export default function FriendsListScreen() {
   const renderFriend = ({ item }: { item: any }) => (
     <View style={styles.friendItem}>
       <Image
-        source={{ uri: item.avatar ?? "https://api.dicebear.com/7.x/adventurer/png?seed=placeholder" }}
+        source={{
+          uri:
+            item.avatar ??
+            "https://api.dicebear.com/7.x/adventurer/png?seed=placeholder",
+        }}
         style={styles.avatar}
       />
       <Text style={styles.friendName}>{item.displayName}</Text>
@@ -74,7 +79,12 @@ export default function FriendsListScreen() {
 
       {/* Search bar */}
       <View style={styles.searchBar}>
-        <Ionicons name="search" size={18} color="#aaa" style={{ marginRight: 6 }} />
+        <Ionicons
+          name="search"
+          size={18}
+          color="#aaa"
+          style={{ marginRight: 6 }}
+        />
         <TextInput
           placeholder="Search"
           style={styles.searchInput}
@@ -84,7 +94,9 @@ export default function FriendsListScreen() {
       </View>
 
       <TouchableOpacity
-        onPress={() => router.push("/features/poi/screens/FriendRequestsScreen")}
+        onPress={() =>
+          router.push("/features/poi/screens/FriendRequestsScreen")
+        }
         style={styles.requestsButton}
       >
         <Text style={styles.requestsButtonText}>View Friend Requests</Text>
@@ -101,7 +113,9 @@ export default function FriendsListScreen() {
       {/* Invite friends button */}
       <TouchableOpacity
         style={styles.inviteButton}
-        onPress={() => router.push("/features/poi/screens/SendFriendRequestScreen")}
+        onPress={() =>
+          router.push("/features/poi/screens/SendFriendRequestScreen")
+        }
       >
         <Text style={styles.inviteText}>Invite Friends</Text>
       </TouchableOpacity>
@@ -109,79 +123,81 @@ export default function FriendsListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-  },
-  header: {
-    marginTop: 20,
-    marginBottom: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  title: { fontSize: 20, fontWeight: "600" },
+function createThemedStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#fff",
+      paddingHorizontal: 20,
+    },
+    header: {
+      marginTop: 20,
+      marginBottom: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    title: { fontSize: 20, fontWeight: "600" },
 
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F6F6F6",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 20,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: "#333",
-  },
-  friendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
-    backgroundColor: "#eee",
-  },
-  friendName: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  inviteButton: {
-    position: "absolute",
-    bottom: 24,
-    left: 20,
-    right: 20,
-    backgroundColor: "#F58A07",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  inviteText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  requestsButton: {
-    backgroundColor: "#F58A07",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    marginBottom: 16,
-    alignSelf: "center",
-  },
+    searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#F6F6F6",
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      marginBottom: 20,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 14,
+      color: "#333",
+    },
+    friendItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      marginRight: 12,
+      backgroundColor: "#eee",
+    },
+    friendName: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: "#333",
+    },
+    inviteButton: {
+      position: "absolute",
+      bottom: 24,
+      left: 20,
+      right: 20,
+      backgroundColor: "#F58A07",
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+    inviteText: {
+      color: "#fff",
+      fontWeight: "600",
+      fontSize: 16,
+    },
+    requestsButton: {
+      backgroundColor: "#F58A07",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      marginBottom: 16,
+      alignSelf: "center",
+    },
 
-  requestsButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-});
+    requestsButtonText: {
+      color: "#fff",
+      fontWeight: "600",
+      fontSize: 14,
+    },
+  });
+}

@@ -15,15 +15,10 @@ import { useRouter } from "expo-router";
 import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebaseConfig";
 import { updateDoc, doc, getDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
-import Toast from "react-native-toast-message";
-import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { collection, getDocs } from "firebase/firestore";
 import { useFocusEffect } from "expo-router";
-import { fetchPlaceDetails } from "@/lib/places";
 import { POI } from "../features/poi/type";
-import { POICard } from "../features/poi/components/POICard";
 import { POIDetailModal } from "../features/poi/components/POIDetailModal";
 
 export default function profile() {
@@ -32,7 +27,7 @@ export default function profile() {
   const { profile, refreshProfile } = useAuth();
   const [name, setName] = useState(profile?.displayName || "");
   const [phone, setPhone] = useState(profile?.phone || "");
-
+  const [createdAt, setCreatedAt] = useState("");
   const [pois, setPOIs] = useState<POI[]>([]);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -67,89 +62,20 @@ export default function profile() {
       if (!user) return;
       const docRef = doc(db, "users", user.uid);
       const snapshot = await getDoc(docRef);
+      console.log(snapshot.data());
+      const createdAt = snapshot.data()?.createdAt;
+      if (createdAt) {
+        setCreatedAt(createdAt.toDate().toString());
+      } else {
+        setCreatedAt("Unknown");
+      }
+
       if (snapshot.exists()) {
         setName(snapshot.data().displayName);
       }
     };
     loadProfile();
   }, [user]);
-
-  const handleSave = async () => {
-    const uid = auth.currentUser?.uid;
-    if (!auth.currentUser) return;
-
-    if (!uid) return;
-
-    await updateDoc(doc(db, "users", uid), {
-      displayName: name,
-      phone,
-    });
-
-    await updateProfile(auth.currentUser!, {
-      displayName: name,
-      photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        name
-      )}&background=random&rounded=true&size=256`,
-    });
-
-    Toast.show({ type: "success", text1: "Profile updated!" });
-    refreshProfile();
-
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      name
-    )}&background=random&rounded=true&size=256`;
-
-    try {
-      await updateProfile(auth.currentUser, {
-        displayName: name,
-        photoURL: avatarUrl,
-      });
-
-      Toast.show({
-        type: "success",
-        text1: "Profile updated!",
-      });
-    } catch (e: any) {
-      Toast.show({
-        type: "error",
-        text1: "Update failed",
-        text2: e.message,
-      });
-    }
-  };
-
-  // Handle place selection
-  const handlePlaceSelect = async (data: any) => {
-    try {
-      const poi = await fetchPlaceDetails(data.place_id);
-      console.log("Returned POI:", poi);
-      if (!poi.id || !poi.coordinate?.latitude || !poi.coordinate?.longitude) {
-        Alert.alert("Invalid place data.");
-        return;
-      }
-
-      setSelectedPOI(poi);
-
-      // mapRef.current?.animateToRegion({
-      //   latitude: poi.coordinate.latitude,
-      //   longitude: poi.coordinate.longitude,
-      //   latitudeDelta: 0.01,
-      //   longitudeDelta: 0.01,
-      // });
-    } catch (error) {
-      console.error("Error fetching details:", error);
-      Alert.alert("Failed to fetch place details");
-    }
-  };
-
-  const fetchProfile = async () => {
-    const docRef = doc(db, "users", auth.currentUser!.uid);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      console.log("User data:", docSnap.data());
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -162,16 +88,15 @@ export default function profile() {
         <Text style={styles.name}>
           {auth.currentUser?.displayName ?? "Your Name"}
         </Text>
-        <Text style={styles.memberSince}>Joined Apr 2025</Text>
+        <Text style={styles.memberSince}>
+          {createdAt
+            ? `Joined ${new Date(createdAt).toLocaleString("en-AU", {
+                year: "numeric",
+                month: "short",
+              })}`
+            : "Joined date unknown"}
+        </Text>
       </View>
-
-      {/* Settings Button */}
-      <TouchableOpacity
-        onPress={() => router.push("/settings")}
-        style={styles.button}
-      >
-        <Text style={styles.buttonText}>Edit Profile</Text>
-      </TouchableOpacity>
 
       <Text style={[styles.name, { marginTop: 16, marginBottom: 4 }]}>
         Favorite Places
@@ -258,7 +183,7 @@ function createThemedStyles(theme: any) {
     },
     name: {
       fontSize: 20,
-      fontWeight: "700",
+      fontWeight: "900",
       color: theme.textDark,
       fontFamily: "PlusJakartaSans",
     },

@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from 'firebase/firestore';
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
+
 const firebaseConfig = {
     apiKey: "AIzaSyDLsUDtju-RfQAPQ2c_2WggLpLU0DpeIyw",
     authDomain: "team32-cse3mad-73398.firebaseapp.com",
@@ -15,6 +16,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-// export const storage = getMessaging(app);
+// export const messaging = getMessaging(app);
 
 

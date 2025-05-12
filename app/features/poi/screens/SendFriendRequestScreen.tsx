@@ -19,10 +19,12 @@ import {
 import { db } from "@/lib/firebaseConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Button } from "@/components/ui/button";
 
 export default function SendFriendRequestScreen() {
   const { user } = useAuth();
   const theme = useTheme();
+  const styles = createThemedStyles(theme);
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -91,16 +93,19 @@ export default function SendFriendRequestScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Send Friend Request</Text>
-
-      <TextInput
-        placeholder="Enter user's email"
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      {/* header */}
+      <Text style={styles.header}>Send Friend Request</Text>
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Enter user's email"
+          placeholderTextColor={theme.placeholderText}
+          style={styles.searchInput}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
 
       <TouchableOpacity
         onPress={handleSendRequest}
@@ -117,32 +122,41 @@ export default function SendFriendRequestScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: "#F58A07",
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-});
+function createThemedStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: theme.background,
+      justifyContent: "flex-start",
+    },
+    header: {
+      fontSize: 22,
+      fontWeight: "600",
+      marginBottom: 20,
+      textAlign: "center",
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 14,
+      color: "textdark",
+      fontFamily: "PlusJakartaSans",
+    },
+    searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.textbox,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      marginBottom: 20,
+    },
+    button: {
+      backgroundColor: "#F58A07",
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  });
+}

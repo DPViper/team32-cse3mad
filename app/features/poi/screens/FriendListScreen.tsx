@@ -15,6 +15,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Button } from "@/components/ui/button";
 
 type Friend = {
   id: string;
@@ -69,38 +70,32 @@ export default function FriendsListScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Friends</Text>
-        <TouchableOpacity onPress={() => router.push("/settings")}>
-          <Ionicons name="settings-outline" size={24} color="#333" />
-        </TouchableOpacity>
-      </View>
-
       {/* Search bar */}
       <View style={styles.searchBar}>
         <Ionicons
           name="search"
           size={18}
           color="#aaa"
-          style={{ marginRight: 6 }}
+          style={{ marginRight: 6, color: theme.placeholderText }}
         />
         <TextInput
           placeholder="Search"
+          placeholderTextColor={theme.placeholderText}
           style={styles.searchInput}
           value={search}
           onChangeText={setSearch}
         />
       </View>
 
-      <TouchableOpacity
+      {/* view friend request button */}
+      <Button
         onPress={() =>
           router.push("/features/poi/screens/FriendRequestsScreen")
         }
         style={styles.requestsButton}
       >
-        <Text style={styles.requestsButtonText}>View Friend Requests</Text>
-      </TouchableOpacity>
+        View Friend Request
+      </Button>
 
       {/* Friends list */}
       <FlatList
@@ -111,14 +106,14 @@ export default function FriendsListScreen() {
       />
 
       {/* Invite friends button */}
-      <TouchableOpacity
+      <Button
         style={styles.inviteButton}
         onPress={() =>
           router.push("/features/poi/screens/SendFriendRequestScreen")
         }
       >
-        <Text style={styles.inviteText}>Invite Friends</Text>
-      </TouchableOpacity>
+        Invite Friends
+      </Button>
     </SafeAreaView>
   );
 }
@@ -127,7 +122,7 @@ function createThemedStyles(theme: any) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#fff",
+      backgroundColor: theme.background,
       paddingHorizontal: 20,
     },
     header: {
@@ -142,7 +137,7 @@ function createThemedStyles(theme: any) {
     searchBar: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "#F6F6F6",
+      backgroundColor: theme.textbox,
       borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 10,
@@ -151,7 +146,8 @@ function createThemedStyles(theme: any) {
     searchInput: {
       flex: 1,
       fontSize: 14,
-      color: "#333",
+      color: "textdark",
+      fontFamily: "PlusJakartaSans",
     },
     friendItem: {
       flexDirection: "row",
@@ -171,14 +167,10 @@ function createThemedStyles(theme: any) {
       color: "#333",
     },
     inviteButton: {
-      position: "absolute",
-      bottom: 24,
-      left: 20,
-      right: 20,
-      backgroundColor: "#F58A07",
       paddingVertical: 14,
       borderRadius: 12,
-      alignItems: "center",
+      alignSelf: "center",
+      width: "80%",
     },
     inviteText: {
       color: "#fff",
@@ -186,18 +178,11 @@ function createThemedStyles(theme: any) {
       fontSize: 16,
     },
     requestsButton: {
-      backgroundColor: "#F58A07",
       paddingVertical: 10,
       paddingHorizontal: 16,
       borderRadius: 10,
       marginBottom: 16,
       alignSelf: "center",
-    },
-
-    requestsButtonText: {
-      color: "#fff",
-      fontWeight: "600",
-      fontSize: 14,
     },
   });
 }

@@ -20,6 +20,7 @@ import { db } from "@/lib/firebaseConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SendFriendRequestScreen() {
   const { user } = useAuth();
@@ -107,17 +108,13 @@ export default function SendFriendRequestScreen() {
         />
       </View>
 
-      <TouchableOpacity
+      <Button
         onPress={handleSendRequest}
         style={styles.button}
-        disabled={sending}
+        loading={sending}
       >
-        {sending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Send Request</Text>
-        )}
-      </TouchableOpacity>
+        Send Request
+      </Button>
     </View>
   );
 }
@@ -147,14 +144,15 @@ function createThemedStyles(theme: any) {
       alignItems: "center",
       backgroundColor: theme.textbox,
       borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
+      marginTop: 20,
+      paddingHorizontal: 15,
+      paddingVertical: 18,
       marginBottom: 20,
     },
     button: {
-      backgroundColor: "#F58A07",
-      paddingVertical: 12,
-      borderRadius: 8,
+      borderRadius: 15,
+      width: "80%",
+      alignSelf: "center",
       alignItems: "center",
     },
     buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },

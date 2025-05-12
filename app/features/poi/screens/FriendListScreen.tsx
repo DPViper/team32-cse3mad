@@ -102,7 +102,7 @@ export default function FriendsListScreen() {
         data={filteredFriends}
         renderItem={renderFriend}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 10 }}
       />
 
       {/* Invite friends button */}
@@ -123,17 +123,7 @@ function createThemedStyles(theme: any) {
     container: {
       flex: 1,
       backgroundColor: theme.background,
-      paddingHorizontal: 20,
     },
-    header: {
-      marginTop: 20,
-      marginBottom: 16,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    title: { fontSize: 20, fontWeight: "600" },
-
     searchBar: {
       flexDirection: "row",
       alignItems: "center",
@@ -141,7 +131,8 @@ function createThemedStyles(theme: any) {
       borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 10,
-      marginBottom: 20,
+      marginVertical: 20,
+      marginHorizontal: 10,
     },
     searchInput: {
       flex: 1,
@@ -152,7 +143,10 @@ function createThemedStyles(theme: any) {
     friendItem: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 16,
+      marginBottom: 10,
+      paddingTop: 10,
+      borderTopWidth: 0.5,
+      borderBottomColor: theme.border,
     },
     avatar: {
       width: 48,
@@ -170,12 +164,8 @@ function createThemedStyles(theme: any) {
       paddingVertical: 14,
       borderRadius: 12,
       alignSelf: "center",
+      marginBottom: 20,
       width: "80%",
-    },
-    inviteText: {
-      color: "#fff",
-      fontWeight: "600",
-      fontSize: 16,
     },
     requestsButton: {
       paddingVertical: 10,

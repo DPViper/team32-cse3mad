@@ -29,6 +29,7 @@ export const options = {
 export default function RegisterScreen() {
   const theme = useTheme();
   const styles = createThemedStyles(theme);
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -59,17 +60,24 @@ export default function RegisterScreen() {
       Toast.show({ type: "error", text1: "Password too short" });
       return;
     }
-
+    setLoading(true);
     const randomSeed = Math.random().toString(36).substring(2, 10);
     const avatarUrl = `https://api.dicebear.com/7.x/adventurer/png?seed=${randomSeed}`;
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
 
       const user = userCredential.user;
 
       // Set display name in Firebase Auth
-      await updateProfile(user, { displayName: data.displayName, photoURL: avatarUrl });
+      await updateProfile(user, {
+        displayName: data.displayName,
+        photoURL: avatarUrl,
+      });
 
       // ✅ Save user data in Firestore
       await setDoc(doc(db, "users", user.uid), {
@@ -92,6 +100,8 @@ export default function RegisterScreen() {
       router.replace("/(tabs)");
     } catch (e: any) {
       Toast.show({ type: "error", text1: "Error", text2: e.message });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,13 +126,16 @@ export default function RegisterScreen() {
           name="displayName"
           rules={{ required: true }}
           render={({ field: { onChange, value } }) => (
-            <Input placeholder="Display Name" value={value} onChangeText={onChange} />
+            <Input
+              placeholder="Display Name"
+              value={value}
+              onChangeText={onChange}
+            />
           )}
         />
         {errors.displayName && (
           <Text style={{ color: "red" }}>Display name is required</Text>
         )}
-
 
         {/* email and password */}
         <Controller
@@ -157,7 +170,11 @@ export default function RegisterScreen() {
           </Text>
         )}
 
-        <Button onPress={handleSubmit(onSubmit)} style={{ marginTop: 15 }}>
+        <Button
+          loading={loading}
+          onPress={handleSubmit(onSubmit)}
+          style={{ marginTop: 15 }}
+        >
           Register
         </Button>
 

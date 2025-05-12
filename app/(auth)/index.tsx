@@ -24,6 +24,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 export default function LoginScreen() {
   const theme = useTheme();
   const styles = createThemedStyles(theme);
+  const [loading, setLoading] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,12 +37,15 @@ export default function LoginScreen() {
       setError("Email and password are required");
       return;
     }
+    setLoading(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/(tabs)");
     } catch (e: any) {
       Alert.alert(e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,7 +82,11 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         {/* login button */}
-        <Button onPress={handleLogin} style={{ width: "100%", marginTop: 16 }}>
+        <Button
+          loading={loading}
+          onPress={handleLogin}
+          style={{ width: "100%", marginTop: 16 }}
+        >
           Log in
         </Button>
 

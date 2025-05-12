@@ -8,12 +8,14 @@ import {
   StyleProp,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
+import { ActivityIndicator } from "react-native";
 
 type ButtonProps = {
   onPress: (event: GestureResponderEvent) => void;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   variant?: "solid" | "ghost" | "outline" | "soft";
+  loading?: boolean;
 };
 
 export const Button = ({
@@ -21,12 +23,14 @@ export const Button = ({
   children,
   style,
   variant = "solid",
+  loading = false,
 }: ButtonProps) => {
   const theme = useTheme();
   const styles = createThemedStyles(theme);
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={loading}
       style={[
         styles.button,
         variant === "ghost"
@@ -39,20 +43,24 @@ export const Button = ({
         style,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          variant === "ghost"
-            ? styles.ghostText
-            : variant === "outline"
-            ? styles.outlineText
-            : variant === "soft"
-            ? styles.softText
-            : {},
-        ]}
-      >
-        {children}
-      </Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={theme.textDark} />
+      ) : (
+        <Text
+          style={[
+            styles.text,
+            variant === "ghost"
+              ? styles.ghostText
+              : variant === "outline"
+              ? styles.outlineText
+              : variant === "soft"
+              ? styles.softText
+              : {},
+          ]}
+        >
+          {children}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

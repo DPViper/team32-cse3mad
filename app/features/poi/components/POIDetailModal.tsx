@@ -37,7 +37,11 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
       const data = await getPOIDetails(poiId);
       setPOI(data);
       const allComments = await getPOIComments(poiId);
-      setComments(allComments);
+      const sortedComments = allComments.sort(
+        (a, b) => b.createdAt - a.createdAt
+      );
+      // todo: fix the error
+      setComments(sortedComments);
     };
     fetchDetails();
   }, [poiId]);
@@ -46,7 +50,6 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-
       <SafeAreaProvider>
         <SafeScreen>
           <ScrollView style={styles.container}>
@@ -73,7 +76,6 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
               />
             </View>
 
-
             <Button
               onPress={() =>
                 router.push({
@@ -88,7 +90,6 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
             >
               Post a Review
             </Button>
-
 
             {/* review section */}
             <Text style={styles.reviewHeader}>Reviews</Text>
@@ -119,7 +120,15 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
                 />
 
                 {comment.imageUrl && (
-                  <Image source={{ uri: comment.imageUrl }} style={{ width: 120, height: 120, borderRadius: 8 }} />
+                  <Image
+                    source={{ uri: comment.imageUrl }}
+                    style={{
+                      width: 200,
+                      height: 120,
+                      borderRadius: 10,
+                      marginBottom: 10,
+                    }}
+                  />
                 )}
 
                 <Text style={styles.commentContent}>{comment.comment}</Text>
@@ -146,7 +155,7 @@ function createThemedStyles(theme: any) {
       color: theme.textDark,
       fontFamily: "PlusJakartaSansBold",
     },
-    image: { height: 200, borderRadius: 20, marginBottom: 12 },
+    image: { height: 200, borderRadius: 30, marginBottom: 12 },
     address: {
       color: theme.secondary,
       fontFamily: "PlusJakartaSans",

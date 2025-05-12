@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Dimensions, Alert, ScrollView, Text } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Alert,
+  ScrollView,
+  Text,
+} from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,12 +19,13 @@ import { savePOI } from "../services/poiService";
 import { POICard } from "../components/POICard";
 import { POIDetailModal } from "../components/POIDetailModal";
 import Constants from "expo-constants";
-import 'react-native-get-random-values';
-
+import "react-native-get-random-values";
 
 export default function POIMapScreen() {
   const { user } = useAuth();
   const theme = useTheme();
+  const styles = createThemedStyles(theme);
+
   const mapRef = useRef<MapView>(null);
 
   const [pois, setPOIs] = useState<POI[]>([]);
@@ -105,16 +113,17 @@ export default function POIMapScreen() {
       const updatedPOI = { ...selectedPOI, id };
       setSelectedPOI(updatedPOI);
 
-      Alert.alert("Shared!", `${selectedPOI.title} is now visible to all users!`);
-
+      Alert.alert(
+        "Shared!",
+        `${selectedPOI.title} is now visible to all users!`
+      );
     } catch {
       Alert.alert("Error", "Failed to share POI.");
     }
   };
 
-
-  const isExistingPOI = selectedPOI && pois.some((p) => p.id === selectedPOI.id);
-
+  const isExistingPOI =
+    selectedPOI && pois.some((p) => p.id === selectedPOI.id);
 
   return (
     <View style={styles.container}>
@@ -160,8 +169,14 @@ export default function POIMapScreen() {
       </MapView>
 
       {selectedPOI && (
-
-        <View style={{position: "absolute", bottom: 10, width: "100%", paddingHorizontal: 10, }}>
+        <View
+          style={{
+            position: "absolute",
+            bottom: 10,
+            width: "100%",
+            paddingHorizontal: 10,
+          }}
+        >
           <POICard
             poi={selectedPOI}
             isInFirestore={!!isExistingPOI}
@@ -182,25 +197,27 @@ export default function POIMapScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  autocompleteContainer: {
-    position: "absolute",
-    top: 10,
-    width: Dimensions.get("window").width,
-    zIndex: 10,
-  },
-  textInputContainer: {
-    backgroundColor: "#fff",
-    marginHorizontal: 10,
-    borderRadius: 8,
-    overflow: "hidden",
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-  },
-  textInput: {
-    height: 40,
-    paddingHorizontal: 10,
-    fontSize: 16,
-  },
-});
+function createThemedStyles(theme: any) {
+  return StyleSheet.create({
+    container: { flex: 1 },
+    autocompleteContainer: {
+      position: "absolute",
+      top: 10,
+      width: Dimensions.get("window").width,
+      zIndex: 10,
+    },
+    textInputContainer: {
+      backgroundColor: "#fff",
+      marginHorizontal: 10,
+      borderRadius: 8,
+      overflow: "hidden",
+      borderTopWidth: 0,
+      borderBottomWidth: 0,
+    },
+    textInput: {
+      height: 40,
+      paddingHorizontal: 10,
+      fontSize: 16,
+    },
+  });
+}

@@ -17,6 +17,7 @@ import { SubmitComments } from "@/app/features/poi/services/submitComments";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { pickImage, uploadImageAsync } from "@/hooks/useStorage";
+import { set } from "date-fns";
 
 export default function ReviewScreen() {
   const theme = useTheme();
@@ -24,6 +25,7 @@ export default function ReviewScreen() {
   const { id, image } = useLocalSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
@@ -40,6 +42,8 @@ export default function ReviewScreen() {
       Alert.alert("Error", "Missing user or POI ID.");
       return;
     }
+
+    setLoading(true);
 
     let uploadedUrl: string | undefined = undefined;
     try {
@@ -71,6 +75,8 @@ export default function ReviewScreen() {
     } catch (error) {
       console.error("Failed to submit review:", error);
       Alert.alert("Error", "Could not submit review.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,9 +86,24 @@ export default function ReviewScreen() {
       {image && (
         <Image source={{ uri: image as string }} style={styles.image} />
       )}
-
-      <StarRating rating={rating} onChange={setRating} poiId={id.toString()} />
-
+      <View
+        style={{
+          flexDirection: "row",
+          marginBottom: 16,
+          justifyContent: "space-between",
+        }}
+      >
+        <View>
+          <StarRating
+            rating={rating}
+            onChange={setRating}
+            poiId={id.toString()}
+          />
+        </View>
+        <Button variant="ghost" onPress={handlePickImage}>
+          Upload Images
+        </Button>
+      </View>
       <TextInput
         placeholder="Write your review here"
         placeholderTextColor={theme.placeholderText}
@@ -91,9 +112,12 @@ export default function ReviewScreen() {
         multiline
         style={styles.textbox}
       />
-      <Button onPress={handlePickImage}>Chọn ảnh</Button>
-      {imageUri && <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />}
-      <Button style={styles.button} onPress={handleSubmit}>
+
+      {imageUri && (
+        <Image source={{ uri: imageUri }} style={styles.uploadedImage} />
+      )}
+
+      <Button style={styles.button} onPress={handleSubmit} loading={loading}>
         Submit Review
       </Button>
     </View>
@@ -110,7 +134,7 @@ function createThemedStyles(theme: any) {
       color: theme.textDark,
       fontFamily: "PlusJakartaSansBold",
     },
-    image: { height: 200, borderRadius: 20, marginBottom: 12 },
+    image: { height: 200, borderRadius: 30, marginBottom: 12 },
 
     textbox: {
       height: 120,
@@ -121,6 +145,7 @@ function createThemedStyles(theme: any) {
       padding: 10,
       textAlignVertical: "top",
       marginBottom: 16,
+      fontFamily: "PlusJakartaSans",
     },
     button: {
       paddingVertical: 10,
@@ -128,6 +153,14 @@ function createThemedStyles(theme: any) {
       alignSelf: "center",
       width: "80%",
     },
+    uploadedImage: {
+      borderRadius: 10,
+      width: "100%",
+      height: 200,
+      marginBottom: 16,
+      alignSelf: "center",
+    },
+
     buttonText: { textAlign: "center", color: "#fff", fontWeight: "600" },
   });
 }

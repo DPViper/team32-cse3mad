@@ -1,29 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+// import {
+//   DarkTheme,
+//   DefaultTheme,
+// } from "@react-navigation/native";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import "react-native-reanimated";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Toast from "react-native-toast-message";
+import "react-native-get-random-values";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import SafeScreen from "@/components/SafeScreen";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    PlusJakartaSans: require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
+    PlusJakartaSansSemiBold: require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
+    PlusJakartaSansBold: require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
   });
 
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <SafeScreen>
+        <AuthProvider>
+          <ThemeProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="settings" options={{ headerShown: true }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <Toast />
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </AuthProvider>
+      </SafeScreen>
+    </SafeAreaProvider>
   );
 }

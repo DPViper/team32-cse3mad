@@ -5,12 +5,7 @@ import { fetchPlaceDetails } from "@/lib/places";
 import Constants from "expo-constants";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  StyleSheet,
-  View
-} from "react-native";
+import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import "react-native-get-random-values";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import MapView, { Marker } from "react-native-maps";
@@ -122,25 +117,69 @@ export default function POIMapScreen() {
 
   const isExistingPOI =
     selectedPOI && pois.some((p) => p.id === selectedPOI.id);
+  const apiKey = Constants.expoConfig?.extra?.googleMapsApiKey;
+
+  if (!apiKey) {
+    console.error("Google Maps API key is not configured");
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>
+          Google Maps API key is not configured
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <GooglePlacesAutocomplete
         placeholder="Search for a place"
         onPress={handlePlaceSelect}
-        fetchDetails={false}
+        fetchDetails={true}
         predefinedPlaces={[]}
-        textInputProps={{}}   
-        query={{
-          key: Constants.expoConfig?.extra?.googleMapsApiKey,
-          language: "en",
+        textInputProps={{
+          autoFocus: false,
+          placeholderTextColor: "#666",
         }}
+        query={{
+          key: apiKey,
+          language: "en",
+          types: "establishment",
+        }}
+        minLength={2}
+        debounce={300}
+        nearbyPlacesAPI="GooglePlacesSearch"
+        enableHighAccuracyLocation={true}
         styles={{
           container: styles.autocompleteContainer,
           textInputContainer: styles.textInputContainer,
           textInput: styles.textInput,
+          listView: {
+            backgroundColor: "#fff",
+            marginHorizontal: 10,
+            borderRadius: 8,
+            marginTop: 5,
+            elevation: 3,
+            zIndex: 1000,
+          },
+          row: {
+            padding: 13,
+            height: "auto",
+            minHeight: 44,
+          },
+          description: {
+            fontSize: 14,
+          },
+          separator: {
+            height: 0.5,
+            backgroundColor: "#c8c7cc",
+          },
         }}
         enablePoweredByContainer={false}
+        onFail={(error) =>
+          console.error("GooglePlacesAutocomplete Error:", error)
+        }
+        onNotFound={() => console.log("No results found")}
       />
 
       <MapView
@@ -218,6 +257,12 @@ function createThemedStyles(theme: any) {
       height: 40,
       paddingHorizontal: 10,
       fontSize: 16,
+    },
+    errorText: {
+      color: "red",
+      fontSize: 16,
+      textAlign: "center",
+      marginTop: 20,
     },
   });
 }

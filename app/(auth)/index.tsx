@@ -1,19 +1,20 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Alert,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
-  Image,
-} from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { useRouter } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,53 +51,55 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
-        {/* illustration */}
-        <View style={styles.topIllustration}>
-          <Image
-            source={require("../../assets/images/login-illustration.png")}
-            style={styles.illustrationImage}
-            resizeMode="contain"
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          {/* illustration */}
+          <View style={styles.topIllustration}>
+            <Image
+              source={require("../../assets/images/login-illustration.png")}
+              style={styles.illustrationImage}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* email and password */}
+          <Input placeholder="Email" onChangeText={setEmail} value={email} />
+          <Input
+            placeholder="Password"
+            onChangeText={setPassword}
+            value={password}
+            secureTextEntry
           />
+
+          {/* error message */}
+          {error !== "" && <Text style={styles.error}>{error}</Text>}
+
+          {/* forgot password */}
+          <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+            <Text style={styles.forgotPassword}>Forgot Password?</Text>
+          </TouchableOpacity>
+
+          {/* login button */}
+          <Button
+            loading={loading}
+            onPress={handleLogin}
+            style={{ width: "100%", marginTop: 16 }}
+          >
+            Log in
+          </Button>
+
+          <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+            <Text style={styles.registerLink}>
+              Don't have an account? Register
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        {/* email and password */}
-        <Input placeholder="Email" onChangeText={setEmail} value={email} />
-        <Input
-          placeholder="Password"
-          onChangeText={setPassword}
-          value={password}
-          secureTextEntry
-        />
-
-        {/* error message */}
-        {error !== "" && <Text style={styles.error}>{error}</Text>}
-
-        {/* forgot password */}
-        <TouchableOpacity onPress={() => router.push("/forgot-password")}>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        {/* login button */}
-        <Button
-          loading={loading}
-          onPress={handleLogin}
-          style={{ width: "100%", marginTop: 16 }}
-        >
-          Log in
-        </Button>
-
-        <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-          <Text style={styles.registerLink}>
-            Don't have an account? Register
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 

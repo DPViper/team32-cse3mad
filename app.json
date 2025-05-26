@@ -37,6 +37,15 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c988d7bb-f9fb-4b3c-a02b-b433f26f44dd"
+      },
+      "googleMapsApiKey": "AIzaSyDLsUDtju-RfQAPQ2c_2WggLpLU0DpeIyw"
     }
   }
 }

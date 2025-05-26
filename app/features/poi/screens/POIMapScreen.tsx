@@ -3,14 +3,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/lib/firebaseConfig";
 import { fetchPlaceDetails } from "@/lib/places";
 import Constants from "expo-constants";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  StyleSheet,
-  View
-} from "react-native";
+import { Alert, Dimensions, StyleSheet, View } from "react-native";
 import "react-native-get-random-values";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import MapView, { Marker } from "react-native-maps";
@@ -32,7 +27,7 @@ export default function POIMapScreen() {
 
   // Load POIs from Firestore
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "pois"), async (snapshot) => {
+    const unsub = onSnapshot(collection(db, "pois"), (snapshot) => {
       const poiList: POI[] = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -56,11 +51,9 @@ export default function POIMapScreen() {
     return () => unsub();
   }, []);
 
-  // Handle place selection
   const handlePlaceSelect = async (data: any) => {
     try {
       const poi = await fetchPlaceDetails(data.place_id);
-      console.log("Returned POI:", poi);
       if (!poi.id || !poi.coordinate?.latitude || !poi.coordinate?.longitude) {
         Alert.alert("Invalid place data.");
         return;
@@ -80,37 +73,13 @@ export default function POIMapScreen() {
     }
   };
 
-  const fetchPOIs = async () => {
-    const snapshot = await getDocs(collection(db, "pois"));
-    const poiList: POI[] = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title,
-        description: data.description,
-        address: data.address,
-        coordinate: {
-          latitude: data.latitude,
-          longitude: data.longitude,
-        },
-        rating: data.rating,
-        averageRating: data.averageRating,
-        comments: data.comments,
-        image: data.image,
-      };
-    });
-    setPOIs(poiList);
-  };
-
   const handleSavePOI = async () => {
     if (!selectedPOI || !user) return;
 
     try {
       const id = await savePOI(selectedPOI, user, selectedPOI.rating || 0);
-
       const updatedPOI = { ...selectedPOI, id };
       setSelectedPOI(updatedPOI);
-
       Alert.alert(
         "Shared!",
         `${selectedPOI.title} is now visible to all users!`
@@ -123,17 +92,26 @@ export default function POIMapScreen() {
   const isExistingPOI =
     selectedPOI && pois.some((p) => p.id === selectedPOI.id);
 
+  // 💡 Fallback API key for Expo Go or standalone builds
+  const apiKey =
+    Constants.expoConfig?.extra?.googleMapsApiKey ??
+    Constants.manifest?.extra?.googleMapsApiKey;
+  console.log("API Key:", apiKey);
   return (
     <View style={styles.container}>
       <GooglePlacesAutocomplete
         placeholder="Search for a place"
         onPress={handlePlaceSelect}
         fetchDetails={false}
+        textInputProps={{}}
         predefinedPlaces={[]}
-        textInputProps={{}}   
         query={{
-          key: Constants.expoConfig?.extra?.googleMapsApiKey,
+          key: apiKey,
           language: "en",
+        }}
+        requestUrl={{
+          useOnPlatform: "all",
+          url: "https://maps.googleapis.com/maps/api",
         }}
         styles={{
           container: styles.autocompleteContainer,
@@ -141,6 +119,7 @@ export default function POIMapScreen() {
           textInput: styles.textInput,
         }}
         enablePoweredByContainer={false}
+        debounce={300}
       />
 
       <MapView
@@ -169,19 +148,12 @@ export default function POIMapScreen() {
       </MapView>
 
       {selectedPOI && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 10,
-            width: "100%",
-            paddingHorizontal: 10,
-          }}
-        >
+        <View style={styles.bottomCard}>
           <POICard
             poi={selectedPOI}
             isInFirestore={!!isExistingPOI}
             onViewDetails={() => setShowDetail(true)}
-            onAdd={() => handleSavePOI()}
+            onAdd={handleSavePOI}
             onClose={() => setSelectedPOI(null)}
           />
         </View>
@@ -218,6 +190,12 @@ function createThemedStyles(theme: any) {
       height: 40,
       paddingHorizontal: 10,
       fontSize: 16,
+    },
+    bottomCard: {
+      position: "absolute",
+      bottom: 10,
+      width: "100%",
+      paddingHorizontal: 10,
     },
   });
 }

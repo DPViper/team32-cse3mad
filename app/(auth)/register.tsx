@@ -1,26 +1,26 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Alert,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebaseConfig";
-import { useRouter } from "expo-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useForm, Controller } from "react-hook-form";
-import Toast from "react-native-toast-message";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebaseConfig";
-import { updateDoc } from "firebase/firestore";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Dimensions } from "react-native";
+import { auth, db } from "@/lib/firebaseConfig";
+import { useRouter } from "expo-router";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Alert,
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import Toast from "react-native-toast-message";
 
 export const options = {
   headerTitle: "Register",
@@ -106,85 +106,91 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
-        {/* illustration */}
-        <View style={styles.topIllustration}>
-          <Image
-            source={require("../../assets/images/register-illustration.png")}
-            style={styles.illustrationImage}
-            resizeMode="contain"
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          {/* illustration */}
+          <View style={styles.topIllustration}>
+            <Image
+              source={require("../../assets/images/register-illustration.png")}
+              style={styles.illustrationImage}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* Display Name */}
+          <Controller
+            control={control}
+            name="displayName"
+            rules={{ required: true }}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Display Name"
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
           />
+          {errors.displayName && (
+            <Text style={{ color: "red" }}>Display name is required</Text>
+          )}
+
+          {/* email and password */}
+          <Controller
+            control={control}
+            name="email"
+            rules={{ required: true }}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Email"
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+          {errors.email && (
+            <Text style={{ color: "red" }}>Email is required</Text>
+          )}
+          <Controller
+            control={control}
+            name="password"
+            rules={{ required: true, minLength: 6 }}
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Password"
+                secureTextEntry
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+          {errors.password && (
+            <Text style={{ color: "red" }}>
+              {errors.password.type === "minLength"
+                ? "Min 6 characters"
+                : "Password is required"}
+            </Text>
+          )}
+
+          <Button
+            loading={loading}
+            onPress={handleSubmit(onSubmit)}
+            style={{ marginTop: 15 }}
+          >
+            Register
+          </Button>
+
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.registerLink}>
+              Already have an account? Login
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Display Name */}
-        <Controller
-          control={control}
-          name="displayName"
-          rules={{ required: true }}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              placeholder="Display Name"
-              value={value}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        {errors.displayName && (
-          <Text style={{ color: "red" }}>Display name is required</Text>
-        )}
-
-        {/* email and password */}
-        <Controller
-          control={control}
-          name="email"
-          rules={{ required: true }}
-          render={({ field: { onChange, value } }) => (
-            <Input placeholder="Email" value={value} onChangeText={onChange} />
-          )}
-        />
-        {errors.email && (
-          <Text style={{ color: "red" }}>Email is required</Text>
-        )}
-        <Controller
-          control={control}
-          name="password"
-          rules={{ required: true, minLength: 6 }}
-          render={({ field: { onChange, value } }) => (
-            <Input
-              placeholder="Password"
-              secureTextEntry
-              value={value}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        {errors.password && (
-          <Text style={{ color: "red" }}>
-            {errors.password.type === "minLength"
-              ? "Min 6 characters"
-              : "Password is required"}
-          </Text>
-        )}
-
-        <Button
-          loading={loading}
-          onPress={handleSubmit(onSubmit)}
-          style={{ marginTop: 15 }}
-        >
-          Register
-        </Button>
-
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.registerLink}>
-            Already have an account? Login
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 

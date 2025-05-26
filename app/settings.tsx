@@ -1,21 +1,19 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useState, useEffect } from "react";
-import { Stack, useRouter } from "expo-router";
-import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/lib/firebaseConfig";
-import { updateDoc, doc, getDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
-import Toast from "react-native-toast-message";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebaseConfig";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { auth, db } from "@/lib/firebaseConfig";
+import { Stack, useRouter } from "expo-router";
+import { signOut, updateProfile } from "firebase/auth";
+import { doc, updateDoc } from "firebase/firestore";
+import { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function settings() {
   const theme = useTheme();

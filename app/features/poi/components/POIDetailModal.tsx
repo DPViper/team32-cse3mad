@@ -47,7 +47,11 @@ export const POIDetailModal = ({ poiId, onClose }: Props) => {
           <ScrollView style={styles.container}>
             <Text style={styles.title}>{poi.title}</Text>
             {poi.image && (
-              <Image source={{ uri: poi.image }} style={styles.image} />
+              <Image
+                testID="poi-image"
+                source={{ uri: poi.image }}
+                style={styles.image}
+              />
             )}
             <Text style={styles.address}>{poi.description}</Text>
 
